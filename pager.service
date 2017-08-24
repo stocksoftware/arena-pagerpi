@@ -1,0 +1,10 @@
+[Unit]
+Description=Pager Service
+ 
+[Service]
+ExecStart=/home/pi/pagerTestV020.py
+StandardOutput=null
+ 
+[Install]
+WantedBy=multi-user.target
+Alias=pager.service

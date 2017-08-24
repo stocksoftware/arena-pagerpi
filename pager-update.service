@@ -1,0 +1,9 @@
+[Unit]
+Description=Update Pager Software
+
+[Service]
+Type=oneshot
+ExecStart=/home/pi/update.sh
+
+[Install]
+WantedBy=pager.service
