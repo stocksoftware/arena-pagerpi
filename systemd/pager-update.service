@@ -1,9 +1,10 @@
 [Unit]
 Description=Update Pager Software
+After=network-online.target
 
 [Service]
 Type=oneshot
-ExecStart=/home/pi/update.sh
+ExecStart=/home/pi/pagerpi/updates/update.sh
 
 [Install]
 WantedBy=pager.service

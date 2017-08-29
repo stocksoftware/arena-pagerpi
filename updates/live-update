@@ -1,0 +1,11 @@
+#!/bin/bash
+
+cd /home/pi/pagerpi
+
+# update the repo as a regular user.
+UPDATE_CHECK=`sudo -u pi /home/pi/pagerpi/updates/update-check`
+
+if [ "xrestart required" == "x$UPDATE_CHECK" ] &&
+   [ 0 -eq systemctl --quiet is-active pager ]; then
+  systemctl restart pager
+fi

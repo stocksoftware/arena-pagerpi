@@ -1,0 +1,42 @@
+#!/usr/bin/env python
+from __future__ import print_function
+import sys
+import traceback
+from subprocess import check_call
+from datetime import datetime
+from os.path import join
+
+
+HOME = "/home/pi"
+REPO = HOME + "/pagerpi"
+RELEASE_BRANCH = "master"
+
+
+def git(*args):
+    return check_call(["git"] + list(args), cwd=REPO)
+
+
+def update_repository():
+    git("fetch", "origin", RELEASE_BRANCH)
+    remote = git("rev-parse", "origin/" + RELEASE_BRANCH)
+    current = git("rev-parse", "HEAD")
+    if remote != current:
+        git("reset", "--hard", "origin/master")
+        return True
+
+
+def main():
+    try:
+        updated = update_repository()
+    except Exception as e:
+        with open(join(HOME, "fail.log"), 'a') as f:
+            f.write(str(datetime.now()))
+            f.write("Failed to update\n")
+            traceback.print_exc(file=f)
+        raise
+    else:
+        print("restart required" if updated else "up to date")
+
+
+if __name__ == '__main__':
+    main()
