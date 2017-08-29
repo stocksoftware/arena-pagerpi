@@ -179,26 +179,61 @@ def getSerialData(data):
 print "PagerTest Startup v020"
 print datetime.datetime.now().isoformat()
 
-with open(outFileName, 'a') as outFile:
-    outFile.write("STARTUP\n")
-    outFile.write(datetime.datetime.now().isoformat())
-    outFile.write("\n")
 
-config_stuff.startup()
+def print_error(e):
+    print bcolors.WARNING + "ERROR...."
+    print datetime.datetime.now().isoformat()
+    print e 
+    print bcolors.ENDC
 
-stop = False
-while not stop:
-    openSerialPort()
-    while True:
+
+def main():
+    needs_startup = True
+    start_sleep_idx = 0
+    start_sleep_intervals = [5, 15, 60]
+    while not stop:
+
+        # Connect to the server to report our version and state.
+        if needs_startup:
+            try:
+                config_stuff.startup()
+            except Exception as e:
+                print_error(e)
+                time.sleep(start_sleep_intervals[start_sleep_idx])
+                if start_sleep_idx + 1 < len(start_sleep_intervals):
+                    start_sleep_idx += 1
+                continue
+            start_sleep_idx = 0
+            needs_startup = False
+
+        if pager.closed:
+            openSerialPort()
+
+        # read one line from the pager receiver
         try:
-            data = pager.readline()   # read one line from the pager receiver
+            data = pager.readline()
+        except Exception as e:
+            print_error(e)
+            pager.close()
+            time.sleep(5)
+            continue
+
+        # parse & handle the data that we read
+        try:
             getSerialData(data)
+        except Exception as e:
+            print_error(e)
+
+        try:
             config_stuff.report()
-        except Exception as e: 
-            print bcolors.WARNING + "ERROR...."
-            print datetime.datetime.now().isoformat()
-            print e 
-            print bcolors.ENDC
-            break
-    closeSerialPort()
-outFile.close()
+        except Exception as e:
+            needs_startup = True
+            print_error(e)
+        
+
+if __name__ == '__main__':
+    with open(outFileName, 'a') as outFile:
+        outFile.write("STARTUP\n")
+        outFile.write(datetime.datetime.now().isoformat())
+        outFile.write("\n")
+        main()
