@@ -4,7 +4,7 @@ After=network-online.target
 
 [Service]
 Type=oneshot
-ExecStart=/home/pi/pagerpi/updates/update.sh
+ExecStart=/home/pi/pagerpi/updates/live-update
 
 [Install]
 WantedBy=pager.service
