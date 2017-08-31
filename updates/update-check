@@ -15,7 +15,7 @@ RELEASE_BRANCH = "master"
 
 
 def git(*args):
-    return check_call(["git"] + list(args), cwd=REPO)
+    return check_output(["git"] + list(args), cwd=REPO)
 
 
 def update_repository():
