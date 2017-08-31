@@ -1,5 +1,10 @@
-[Timer]
+[Unit]
+Update pager source at a regular interval
 
+[Timer]
 OnCalendar=*:0/5
 RandomizedDelaySec=2min
 AccuracySec=5sec
+
+[Install]
+WantedBy=timers.target
