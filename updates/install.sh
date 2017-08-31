@@ -9,5 +9,5 @@ cp $UNITS/pager-update.service $SERVICE_DEF/pager-update.service
 cp $UNITS/pager-update.timer   $SERVICE_DEF/pager-update.timer
 
 # install new services
-systemctl enable pager pager-update
+systemctl enable pager pager-update pager-update.timer
 systemctl start pager
