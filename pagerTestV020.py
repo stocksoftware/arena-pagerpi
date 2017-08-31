@@ -26,7 +26,7 @@ DEBUG = 1;
 port = '/dev/serial0' 
 baud = 9600
 
-outFileName = 'pagerOut020.txt'
+outFileName = '/home/pi/pagerOut020.txt'
 
 serverURL = "arenatest.nafc.org.au:80"
 
