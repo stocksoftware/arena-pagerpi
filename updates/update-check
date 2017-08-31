@@ -22,7 +22,7 @@ def update_repository():
     current = git("rev-parse", "HEAD")
     if remote != current:
         #git("reset", "--hard", "origin/master")
-        git("pull", "origin/master")
+        git("merge", "origin/master")
         return True
 
 
