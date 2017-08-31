@@ -7,7 +7,9 @@ UPDATE_CHECK=`sudo -u pi /home/pi/pagerpi/updates/update-check`
 
 echo $UPDATE_CHECK
 
-if [ "xrestart required" == "x$UPDATE_CHECK" ] &&
-   [ 0 -eq systemctl --quiet is-active pager ]; then
-  systemctl restart pager
+if [ "xrestart required" == "x$UPDATE_CHECK" ]; then
+   systemctl --quiet is-active pager
+   if [ 0 -eq $? ]; then
+     systemctl restart pager
+   fi
 fi
