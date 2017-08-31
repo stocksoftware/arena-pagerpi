@@ -208,7 +208,7 @@ def main():
             start_sleep_idx = 0
             needs_startup = False
 
-        if pager.closed:
+        if not pager.is_open:
             openSerialPort()
 
         # read one line from the pager receiver
