@@ -1,5 +1,5 @@
 [Unit]
-Update pager source at a regular interval
+Description=Update pager source at a regular interval
 
 [Timer]
 OnCalendar=*:0/5
