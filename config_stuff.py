@@ -1,3 +1,6 @@
+"""Functions to manage runtime configuration of the pager service.
+"""
+
 from __future__ import print_function
 import requests
 import traceback
