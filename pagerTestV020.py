@@ -187,6 +187,8 @@ def print_error(e):
     print bcolors.ENDC
 
 
+stop = False
+
 def main():
     needs_startup = True
     start_sleep_idx = 0
