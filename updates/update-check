@@ -21,21 +21,14 @@ def update_repository():
     remote = git("rev-parse", "origin/" + RELEASE_BRANCH)
     current = git("rev-parse", "HEAD")
     if remote != current:
-        git("reset", "--hard", "origin/master")
+        #git("reset", "--hard", "origin/master")
+        git("pull", "origin/master")
         return True
 
 
 def main():
-    try:
-        updated = update_repository()
-    except Exception as e:
-        with open(join(HOME, "fail.log"), 'a') as f:
-            f.write(str(datetime.now()))
-            f.write("Failed to update\n")
-            traceback.print_exc(file=f)
-        raise
-    else:
-        print("restart required" if updated else "up to date")
+    updated = update_repository()
+    print("restart required" if updated else "up to date")
 
 
 if __name__ == '__main__':
