@@ -26,6 +26,7 @@ def update_repository():
         #git("reset", "--hard", "origin/master")
         git("merge", "origin/master")
         return True
+    return False
 
 
 def main():
