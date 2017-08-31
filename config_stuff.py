@@ -30,9 +30,10 @@ def fail_and_exit(text):
 
 
 try:
-    REMOTE = os.environ['ARENA_REMOTE'].rstrip('/')
-except KeyError:
-    fail_and_exit("Please set the environment variable ARENA_REMOTE to "
+    with open('/home/pi/arena_remote_url') as f:
+        REMOTE = f.read().strip()
+except OSError:
+    fail_and_exit("Please set the contents of ~/arena_remote_url to "
                   "a pager endpoint.\n"
                   "e.g. http://arenatest.nafc.org.au/register/api/pddPager\n"
                   "or http://10.0.0.130:8880")
