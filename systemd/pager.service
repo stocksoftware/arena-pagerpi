@@ -4,6 +4,7 @@ Description=Pager Service
 [Service]
 ExecStart=/home/pi/pagerpi/pagerTestV020.py
 StandardOutput=null
+User=pi
  
 [Install]
 WantedBy=multi-user.target
