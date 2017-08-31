@@ -100,13 +100,14 @@ def perform(data):
         return
     for command in data.get('commands', ()):
         name, args = command
-        action = ACTIONS.get(name, default_action)
+        action = ACTIONS.get(name, default_action(name))
         action(*args)
 
 
 def default_action(name):
     def action(*args):
-        print "no such action %s (%d pos args)" % (name, len(args))
+        print("no such action %s (%d pos args)" % (name, len(args)))
+    return action
 
 
 @action
