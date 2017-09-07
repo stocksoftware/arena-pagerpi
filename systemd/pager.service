@@ -2,7 +2,7 @@
 Description=Pager Service
  
 [Service]
-ExecStart=/home/pi/pagerpi/pagerTestV020.py
+ExecStart=/home/pi/pagerpi/pagerpi
 StandardOutput=null
 User=pi
  
