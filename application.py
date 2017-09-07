@@ -1,4 +1,5 @@
 import serial
+import signal
 import page_log
 
 from datetime import datetime
