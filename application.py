@@ -13,6 +13,7 @@ class PagerPI(object):
     start_sleep_idx = 0
     needs_startup = True
     start_sleep_intervals = [5, 15, 30, 60, 120, 240]
+    need_sleep = None
 
     def __init__(self, port='/dev/serial0', baud=9600, timeout=5.*60):
         self.pager = serial.Serial(port=port, baudrate=baud, timeout=timeout)
