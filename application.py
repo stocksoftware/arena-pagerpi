@@ -1,6 +1,7 @@
 import serial
 import signal
 import page_log
+import config_stuff
 
 from datetime import datetime
 from read_page import handle_serial_data
