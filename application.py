@@ -1,4 +1,5 @@
 import serial
+import page_log
 
 from datetime import datetime
 from read_page import handle_serial_data
