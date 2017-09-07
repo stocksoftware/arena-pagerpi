@@ -65,7 +65,7 @@ def fail_and_exit(text):
 
 def report_exception(e):
     now = datetime.now()
-    STATUS['errors'].append({'ts' : now.isoformat(), 'message', e.message})
+    STATUS['errors'].append({'ts' : now.isoformat(), 'message' : e.message})
     print bcolors.WARNING + "ERROR...."
     print now.isoformat()
     print e 
@@ -73,7 +73,7 @@ def report_exception(e):
 
 def report_error(message):
     now = datetime.now()
-    STATUS['errors'].append({'ts' : now.isoformat(), 'message', message})
+    STATUS['errors'].append({'ts' : now.isoformat(), 'message' : message})
     print bcolors.WARNING + "ERROR...."
     print now.isoformat()
     print message
