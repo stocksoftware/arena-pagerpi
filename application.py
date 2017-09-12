@@ -36,7 +36,7 @@ class PagerPI(object):
                        'other_messages': 0}
         try:
             import pushover
-            self.pushover = Client()
+            self.pushover = pushover.Client()
         except Exception:
             self.pushover = SilentPushover()
 
