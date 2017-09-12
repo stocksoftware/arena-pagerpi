@@ -21,6 +21,9 @@ def handle_serial_data(app, pager_message):
 def read_alert_message(app, data):
   data = data.strip('\n')   # strip the end of line character
   pieces = data.split(" ")  # break the line in to pieces - some are useful later
+  if len(pieces) < 6:
+      # if we don't have six individual words it can't be an alert message
+      return
   msgType = pieces[2]
   capCode = pieces[1]
   if msgType[:2] == "@@" and "ALERT" in data:   # look for ALERT messages

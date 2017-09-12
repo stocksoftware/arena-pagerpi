@@ -11,11 +11,6 @@ import sys
 from subprocess import check_output, CalledProcessError
 from datetime import datetime
 
-CONFIG = {}
-STATUS = {'errors': [],
-          'alert_messages': 0,
-          'other_messages': 0}
-
 FAIL_LOG = 'fail.log'
 
 
@@ -29,24 +24,26 @@ def fail_and_exit(text):
     sys.exit(text)
 
 
-try:
-    with open('/home/pi/arena_remote_url') as f:
-        REMOTE = f.read().strip()
-except OSError:
-    fail_and_exit("Please set the contents of ~/arena_remote_url to "
-                  "a pager endpoint.\n"
-                  "e.g. http://arenatest.nafc.org.au/register/api/pddPager\n"
-                  "or http://10.0.0.130:8880")
+def get_remote_url():
+    try:
+        with open('/home/pi/arena_remote_url') as f:
+            remote = f.read().strip()
+    except OSError:
+        fail_and_exit("Please set the contents of ~/arena_remote_url to "
+                      "a pager endpoint.\n"
+                      "e.g. http://arenatest.nafc.org.au/register/api/pddPager\n"
+                      "or http://10.0.0.130:8880")
 
-if '://' not in REMOTE:
-    fail_and_exit("Invalid ARENA_REMOTE: missing protocol (eg http://)")
+    if '://' not in remote:
+        fail_and_exit("Invalid ARENA_REMOTE: missing protocol (eg http://)")
+    return remote
 
 
 def form(d):
     return {'content' : json.dumps(d)}
 
 
-def startup():
+def startup(app):
     """Report startup information to Arena and get configuration data.
     """
     try:
@@ -56,13 +53,11 @@ def startup():
 
     try:
         ip_address = check_output(["hostname", "-I"]).split()
-
-        config = requests.post(REMOTE + "/startup",
+        remote = get_remote_url()
+        config = requests.post(remote + "/startup",
                                data={'revision': revision,
                                      'ip-address': ':'.join(ip_address)})
-        data = config.json()
-        CONFIG.clear()
-        CONFIG.update(data)
+        app.config = config.json()
     except Exception as e:
         with open(FAIL_LOG, 'a') as f:
             f.write("%s\n" % datetime.now())
@@ -71,18 +66,18 @@ def startup():
         raise
 
 
-def report():
-    data = {}
-    data.update(STATUS)
+def report(app):
+    data = dict(app.status)
     now = data['report_time'] = str(datetime.now())
     try:
-        res = requests.post(REMOTE + "/report", data=form(data))
+        remote = get_remote_url()
+        res = requests.post(remote + "/report", data=form(data))
         res.raise_for_status()
     except (OSError, requests.exceptions.HTTPError) as e:
-        STATUS['errors'].append(e.message)
+        app.status['errors'].append(e.message)
     else:
-        STATUS['errors'] = []
-        STATUS['last_report'] = now
+        app.status['errors'] = []
+        app.status['last_report'] = now
         perform(res)
 
 ACTIONS = {}

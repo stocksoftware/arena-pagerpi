@@ -1,6 +1,6 @@
 import sys
+import traceback
 from datetime import datetime
-from config_stuff import STATUS
 
 outFileName = '/home/pi/pagerOut020.txt'
 pagerLineFile = '/home/pi/pager_lines.txt'
@@ -63,19 +63,21 @@ def fail_and_exit(text):
         f.write("\n")
     sys.exit(text)
 
-def report_exception(e):
+def report_exception(app, e):
     now = datetime.now()
-    STATUS['errors'].append({'ts' : now.isoformat(), 'message' : e.message})
+    app.status['errors'].append({'ts' : now.isoformat(),
+                                 'message' : e.message})
     print bcolors.WARNING + "ERROR...."
     print now.isoformat()
-    print e 
+    traceback.print_exc()
     print bcolors.ENDC
 
-def report_error(message):
-    now = datetime.now()
-    STATUS['errors'].append({'ts' : now.isoformat(), 'message' : message})
-    print bcolors.WARNING + "ERROR...."
-    print now.isoformat()
-    print message
-    print bcolors.ENDC
+# def report_error(app, message):
+#     now = datetime.now()
+#     app.status['errors'].append({'ts' : now.isoformat(),
+#                                  'message' : message})
+#     print bcolors.WARNING + "ERROR...."
+#     print now.isoformat()
+#     print message
+#     print bcolors.ENDC
 

@@ -2,10 +2,16 @@ import serial
 import signal
 import page_log
 import config_stuff
+import time
 
+from subprocess import check_output
 from datetime import datetime
 from read_page import handle_serial_data
 
+
+class SilentPushover(object):
+    def send_message(self, *args, **kwargs):
+        pass
 
 class PagerPI(object):
     debug = False
@@ -15,22 +21,36 @@ class PagerPI(object):
     needs_startup = True
     start_sleep_intervals = [5, 15, 30, 60, 120, 240]
     need_sleep = None
+    ip_addresses = "UNSET"
 
-    def __init__(self, port='/dev/serial0', baud=9600, timeout=5.*60):
-        self.pager = serial.Serial(port=port, baudrate=baud, timeout=timeout)
+    def __init__(self, pager=None, port='/dev/serial0', baud=9600,
+                 timeout=5.*60):
+        self.pager = pager
+        if pager is None:
+            self.pager = serial.Serial(port=port, baudrate=baud,
+                                       timeout=timeout)
+        self.arena_api = config_stuff
+        self.log = page_log
+        self.status = {'errors': [],
+                       'alert_messages': 0,
+                       'other_messages': 0}
+        try:
+            import pushover
+            self.pushover = Client()
+        except Exception:
+            self.pushover = SilentPushover()
 
     def sleep_interval(self):
         interval = self.start_sleep_intervals[self.start_sleep_idx]
-        self.start_sleep_idx += 1
-        if self.start_sleep_idx + 1 < len(start_sleep_intervals):
+        if self.start_sleep_idx + 1 < len(self.start_sleep_intervals):
             self.start_sleep_idx += 1
         return interval
 
     def startup(self):
         try:
-            config_stuff.startup()
+            self.arena_api.startup(self)
         except Exception as e:
-            page_log.report_exception(e)
+            self.log.report_exception(self, e)
             self.need_sleep = self.sleep_interval()
             raise
         else:
@@ -39,6 +59,8 @@ class PagerPI(object):
 
     def main_once(self):
         if self.needs_startup:
+            # report our IP to admin.
+            self.send_addresses()
             # Connect to the server to report our version and state.
             self.startup()
 
@@ -59,15 +81,15 @@ class PagerPI(object):
             raise
 
         if data:
-            STATUS['last_read_time'] = datetime.now()
-            page_log.pager_log_all(data)
+            self.status['last_read_time'] = datetime.now()
+            self.log.pager_log_all(data)
             
         # parse & handle the data that we read
         handle_serial_data(self, data)
         try:
-            config_stuff.report()
+            self.arena_api.report(self)
         except Exception:
-            needs_startup = True
+            self.needs_startup = True
             raise
         
     def main(self):
@@ -75,14 +97,22 @@ class PagerPI(object):
             try:
                 self.main_once()
             except Exception as exception:
-                page_log.report_exception(exception)
+                self.log.report_exception(self, exception)
             if self.need_sleep is not None:
                 time.sleep(self.need_sleep)
                 self.need_sleep = None
 
     def shutdown_handler(self, signum, frame):
-        page_log.stop_logs()
+        self.log.stop_logs()
         raise _SHUTDOWN
+
+    def send_addresses(self):
+        ip_addresses = check_output(["hostname", "-I"]).strip()
+        if ip_addresses != self.ip_addresses:
+            self.pushover.send_message(ip_addresses, title="My IP")
+            self.ip_addresses = ip_addresses
+
+
 
 
 class _Shutdown(BaseException):
@@ -102,7 +132,7 @@ def main(debug=False, quiet=False):
         pagerpi.quiet = quiet
         signal.signal(signal.SIGTERM, pagerpi.shutdown_handler)
         pagerpi.main()
-    except _Shutdown:
+    except (_Shutdown, KeyboardInterrupt):
         pass
 
 
