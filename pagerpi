@@ -3,5 +3,5 @@
 import sys
 from application import main
 
-main(debug='--debug' not in sys.argv,
-     quiet='--quiet'not in sys.argv)
+main(debug='--debug' in sys.argv,
+     quiet='--quiet' in sys.argv)

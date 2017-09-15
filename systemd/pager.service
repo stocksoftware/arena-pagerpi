@@ -2,8 +2,7 @@
 Description=Pager Service
  
 [Service]
-ExecStart=/home/pi/pagerpi/pagerpi
-StandardOutput=null
+ExecStart=/home/pi/pagerpi/pagerpi --quiet
 User=pi
  
 [Install]
