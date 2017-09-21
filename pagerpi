@@ -4,4 +4,4 @@ import sys
 from application import main
 
 main(debug='--debug' in sys.argv,
-     quiet='--quiet' in sys.argv)
+     verbose='--verbose' in sys.argv)

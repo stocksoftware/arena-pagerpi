@@ -1,3 +1,4 @@
+from __future__ import print_function
 import serial
 import signal
 import page_log
@@ -104,12 +105,14 @@ class PagerPI(object):
                 self.need_sleep = None
 
     def shutdown_handler(self, signum, frame):
+        print("Received shutdown signal")
         self.log.stop_logs()
         raise _SHUTDOWN
 
     def send_addresses(self):
         ip_addresses = check_output(["hostname", "-I"]).strip()
         if ip_addresses != self.ip_addresses:
+            print("Sending IP Addresses [", ip_addresses, "]")
             self.pushover.send_message(ip_addresses, title="My IP")
             self.ip_addresses = ip_addresses
 
@@ -122,10 +125,10 @@ class _Shutdown(BaseException):
 _SHUTDOWN = _Shutdown("TERM signal received")
 
 
-def main(debug=False, quiet=False):
-    if not quiet:
-        print "PagerTest Startup v020"
-        print datetime.now().isoformat()
+def main(debug=False, verbose=True):
+    print("PagerPI Start")
+    if verbose:
+        print(datetime.datetime.now().isoformat())
     page_log.start_logs()
     try:
         pagerpi = PagerPI()
