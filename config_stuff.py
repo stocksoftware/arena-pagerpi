@@ -12,9 +12,8 @@ import os.path
 from subprocess import check_output, CalledProcessError
 from datetime import datetime
 
-FAIL_LOG = 'fail.log'
 REPO = os.path.abspath(os.path.dirname(__file__))
-
+FAIL_LOG = os.path.join(os.path.dirname(REPO), 'fail.log')
 
 def fail_and_exit(text):
     """Log failure for next time we start, and exit the program.
@@ -45,21 +44,28 @@ def form(d):
     return {'content' : json.dumps(d)}
 
 
+def configure(app):
+    with open(os.path.join(REPO, app.pagerrc)) as f:
+        app.config = json.load(f)
+
+    try:
+        app.config['revision'] = check_output(["git", "describe", "--tags"],
+                                              cwd=REPO)
+    except CalledProcessError:
+        app.config['revision'] = 'Unknown'
+
+    try:
+        app.config['ip_address'] = check_output(["hostname", "-I"]).split()
+    except CalledProcessError:
+        app.config['ip_address'] = ['not connected?']
+
+
 def startup(app):
     """Report startup information to Arena and get configuration data.
     """
     try:
-        revision = check_output(["git", "describe", "--tags"], cwd=REPO)
-    except CalledProcessError:
-        revision = ""
-
-    try:
-        ip_address = check_output(["hostname", "-I"]).split()
-        remote = get_remote_url()
-        config = requests.post(remote + "/startup",
-                               data={'revision': revision,
-                                     'ip-address': ':'.join(ip_address)})
-        app.config = config.json()
+        configure(app)
+#        requests.post(remote + "/startup", data=form(app.config))
     except Exception as e:
         with open(FAIL_LOG, 'a') as f:
             f.write("%s\n" % datetime.now())

@@ -23,6 +23,7 @@ class PagerPI(object):
     start_sleep_intervals = [5, 15, 30, 60, 120, 240]
     need_sleep = None
     ip_addresses = "UNSET"
+    pagerrc = ['..', 'pagerrc.json']
 
     def __init__(self, pager=None, port='/dev/serial0', baud=9600,
                  timeout=5.*60):

@@ -42,6 +42,7 @@ class FakePushover(object):
 
 def create_pager(pages):
     pagerpi = application.PagerPI(pager=FakePager(pages))
+    pagerpi.pagerrc = ['tests', 'pagerrc.json']
     pagerpi.arena_api = FakeAPI()
     pagerpi.log = FakeLog()
     pagerpi.pushover = FakePushover()
