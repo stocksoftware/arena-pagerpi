@@ -136,7 +136,7 @@ _SHUTDOWN = _Shutdown("TERM signal received")
 def main(debug=False, verbose=True):
     print("PagerPI Start")
     if verbose:
-        print(datetime.datetime.now().isoformat())
+        print(datetime.now().isoformat())
     page_log.start_logs()
     try:
         pagerpi = PagerPI()
