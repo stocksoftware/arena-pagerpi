@@ -10,9 +10,9 @@ cp $UNITS/pager-update.timer   $SERVICE_DEF/pager-update.timer
 
 read -p "Papertrail server [enter to ignore papertrail setup] " -e PAPERTRAIL_SERVER
 
-if [ "x" <> "x$PAPERTRAIL_SERVER" ]; then
+if [ "x" != "x$PAPERTRAIL_SERVER" ]; then
    read -p "Papertrail port " -e PAPERTRAIL_PORT
-   if [ "x" <> "x$PAPERTRAIL_PORT" ]; then
+   if [ "x" != "x$PAPERTRAIL_PORT" ]; then
       sed -e "s/PAPERTRAIL_SERVER/$PAPERTRAIL_SERVER/g" \
           -e "s/PAPERTRAIL_PORT/$PAPERTRAIL_PORT/g" \
           $UNITS/papertrail.service > $SERVICE_DEF/papertrail.service

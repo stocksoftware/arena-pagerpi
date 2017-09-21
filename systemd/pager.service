@@ -2,7 +2,7 @@
 Description=Pager Service
  
 [Service]
-ExecStart=/home/pi/pagerpi/pagerpi --quiet
+ExecStart=/home/pi/pagerpi/pagerpi
 User=pi
  
 [Install]
