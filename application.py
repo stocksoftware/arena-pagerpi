@@ -4,6 +4,7 @@ import signal
 import page_log
 import config_stuff
 import time
+import requests
 
 from subprocess import check_output
 from datetime import datetime
@@ -117,6 +118,12 @@ class PagerPI(object):
             self.pushover.send_message(ip_addresses, title="My IP")
             self.ip_addresses = ip_addresses
 
+    def on_alert_message(self, message):
+        headers = {"x-version": self.config['xver'],
+                   "authorization": self.config['auth']}
+        response = requests.post(self.config['pddUrl'],
+                                 headers=headers, data=message)
+        response.raise_for_status()
 
 
 
