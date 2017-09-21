@@ -87,9 +87,9 @@ class PagerPI(object):
         if data:
             self.status['last_read_time'] = datetime.now()
             self.log.pager_log_all(data)
-            
-        # parse & handle the data that we read
-        handle_serial_data(self, data)
+            # parse & handle the data that we read
+            handle_serial_data(self, data)
+        
         try:
             self.arena_api.report(self)
         except Exception:
