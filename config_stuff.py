@@ -45,7 +45,7 @@ def form(d):
 
 
 def configure(app):
-    with open(os.path.join(REPO, app.pagerrc)) as f:
+    with open(os.path.join(REPO, *app.pagerrc)) as f:
         app.config = json.load(f)
 
     try:
