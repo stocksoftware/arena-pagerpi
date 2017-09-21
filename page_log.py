@@ -64,9 +64,10 @@ def fail_and_exit(text):
     sys.exit(text)
 
 def report_exception(app, e):
+    exception_text = traceback.format_exception_only(type(e), e)
     now = datetime.now()
     app.status['errors'].append({'ts' : now.isoformat(),
-                                 'message' : e.message})
+                                 'message' : exception_text})
     print bcolors.WARNING + "ERROR...."
     print now.isoformat()
     traceback.print_exc(limit=None if app.verbose else 1)
