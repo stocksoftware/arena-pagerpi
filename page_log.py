@@ -69,10 +69,7 @@ def report_exception(app, e):
                                  'message' : e.message})
     print bcolors.WARNING + "ERROR...."
     print now.isoformat()
-    if app.verbose:
-        traceback.print_exc()
-    else:
-        print(e.message)
+    traceback.print_exception(limit=None if app.verbose else 1)
     print bcolors.ENDC
 
 # def report_error(app, message):
