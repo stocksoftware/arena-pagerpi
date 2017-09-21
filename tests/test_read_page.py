@@ -2,7 +2,7 @@ import read_page
 
 class ToyApp(object):
     debug = False
-    quiet = False
+    verbose = False
     def __init__(self):
         self.status = {'alert_messages': 0}
 

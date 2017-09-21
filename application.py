@@ -16,7 +16,7 @@ class SilentPushover(object):
 
 class PagerPI(object):
     debug = False
-    quiet = False
+    verbose = False
     stop = False
     start_sleep_idx = 0
     needs_startup = True
@@ -133,7 +133,7 @@ def main(debug=False, verbose=True):
     try:
         pagerpi = PagerPI()
         pagerpi.debug = debug
-        pagerpi.quiet = quiet
+        pagerpi.verbose = verbose
         signal.signal(signal.SIGTERM, pagerpi.shutdown_handler)
         pagerpi.main()
     except (_Shutdown, KeyboardInterrupt):

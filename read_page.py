@@ -28,7 +28,7 @@ def read_alert_message(app, data):
   capCode = pieces[1]
   if msgType[:2] == "@@" and "ALERT" in data:   # look for ALERT messages
     app.status['alert_messages'] += 1
-    if not app.quiet:
+    if app.verbose:
         print "\n"
     capCode = pieces[1]
     cadEvent = pieces[3]
@@ -63,12 +63,12 @@ def read_alert_message(app, data):
       aircraftMsg = 1
     else:
       if app.debug == 1:
-        if not app.quiet:
+        if app.verbose:
             print "NO Geo Coords - going random!"
         latitude = -37.616+random.uniform(-1, 1)
         longitude = 144.420+random.uniform(-1, 1)
         if random.randint(0,9) > 5:
-          if not app.quiet:
+          if app.verbose:
               print "Random aircraft message generated!"
           aircraftMsg = 1
       else:
