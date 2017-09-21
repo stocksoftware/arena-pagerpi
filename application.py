@@ -33,7 +33,8 @@ class PagerPI(object):
         self.log = page_log
         self.status = {'errors': [],
                        'alert_messages': 0,
-                       'other_messages': 0}
+                       'other_messages': 0,
+                       'last_read_time': None}
         try:
             import pushover
             self.pushover = pushover.Client()

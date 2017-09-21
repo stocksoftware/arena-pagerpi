@@ -1,0 +1,13 @@
+[Unit]
+Description=Papertrail
+After=systemd-journald.service
+Requires=systemd-journald.service
+
+[Service]
+ExecStart=/bin/sh -c "journalctl -f | ncat --ssl PAPERTRAIL_SERVER.papertrailapp.com PAPERTRAIL_PORT"
+TimeoutStartSec=0
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

@@ -54,7 +54,8 @@ def test_normal_interaction():
     assert len(pagerpi.arena_api.messages) == 2
     startup, report = pagerpi.arena_api.messages
     assert startup == (
-        'startup', {'errors': [], 'alert_messages': 0, 'other_messages': 0})
+        'startup', {'errors': [], 'alert_messages': 0, 'other_messages': 0,
+                    'last_read_time' : None})
     assert report[0] == 'report'
     assert 'last_read_time' in report[1]
     assert report[1]['other_messages'] == 1
@@ -89,8 +90,8 @@ def test_reconnect_on_report_failure():
 
     print pagerpi.arena_api.messages
 
-    assert 'last_read_time' in report_fail
-    assert 'last_read_time' in report_success
+    assert report_fail['last_read_time'] is not None
+    assert report_success['last_read_time'] is not None
     assert report_fail['last_read_time'] < report_success['last_read_time']
     assert recon[1]['last_read_time'] == report_fail['last_read_time']
     assert len(recon[1]['errors']) == 1
