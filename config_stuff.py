@@ -7,11 +7,13 @@ import traceback
 import json
 import os
 import sys
+import os.path
 
 from subprocess import check_output, CalledProcessError
 from datetime import datetime
 
 FAIL_LOG = 'fail.log'
+REPO = os.path.abspath(os.path.dirname(__file__))
 
 
 def fail_and_exit(text):
@@ -47,7 +49,7 @@ def startup(app):
     """Report startup information to Arena and get configuration data.
     """
     try:
-        revision = check_output(["git", "describe", "--tags"])
+        revision = check_output(["git", "describe", "--tags"], cwd=REPO)
     except CalledProcessError:
         revision = ""
 
