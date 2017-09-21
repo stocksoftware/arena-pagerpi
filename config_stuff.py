@@ -66,7 +66,7 @@ def report(app):
     now = data['report_time'] = str(datetime.now())
     try:
         report_url = app.config.get('reportUrl', None)
-        if remote:
+        if report_url:
             res = requests.post(report_url + "/report", data=form(data))
         res.raise_for_status()
     except (OSError, requests.exceptions.HTTPError) as e:
