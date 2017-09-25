@@ -11,6 +11,7 @@ import os.path
 
 from subprocess import check_output, CalledProcessError
 from datetime import datetime
+from page_log import report_exception
 
 REPO = os.path.abspath(os.path.dirname(__file__))
 FAIL_LOG = os.path.join(os.path.dirname(REPO), 'fail.log')
@@ -55,10 +56,7 @@ def startup(app):
         if report_url:
             requests.post(report_url + "/startup", data=form(app.config))
     except Exception as e:
-        with open(FAIL_LOG, 'a') as f:
-            f.write("%s\n" % datetime.now())
-            traceback.print_exc(file=f)
-            f.write("\n")
+        report_exception(app, e)
         raise
 
 
@@ -72,7 +70,7 @@ def report(app):
             res = requests.post(report_url + "/report", data=form(data))
         res.raise_for_status()
     except (OSError, requests.exceptions.HTTPError) as e:
-        app.status['errors'].append(e.message)
+        report_exception(app, e)
     else:
         app.status['errors'] = []
         app.status['last_report'] = now
