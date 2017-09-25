@@ -133,7 +133,7 @@ class _Shutdown(BaseException):
 _SHUTDOWN = _Shutdown("TERM signal received")
 
 
-def main(debug=False, verbose=True):
+def main(debug=False, verbose=True, no_pushover=False):
     print("PagerPI Start")
     if verbose:
         print(datetime.now().isoformat())
@@ -142,6 +142,8 @@ def main(debug=False, verbose=True):
         pagerpi = PagerPI()
         pagerpi.debug = debug
         pagerpi.verbose = verbose
+        if no_pushover:
+            pagerpi.send_addresses = lambda: None
         signal.signal(signal.SIGTERM, pagerpi.shutdown_handler)
         pagerpi.main()
     except (_Shutdown, KeyboardInterrupt):
