@@ -89,12 +89,17 @@ class PagerPI(object):
             self.log.pager_log_all(data)
             # parse & handle the data that we read
             handle_serial_data(self, data)
+        elif self.verbose:
+            print('No data within timeout period')
         
         try:
             self.arena_api.report(self)
         except Exception:
             self.needs_startup = True
             raise
+        else:
+            if self.verbose:
+                print('Reported to Arena')
         
     def main(self):
         while not self.stop:
