@@ -26,7 +26,8 @@ def fail_and_exit(text):
 
 
 def form(d):
-    return {'content' : json.dumps(d)}
+    return {'content' : json.dumps(d),
+            'token' : d['token']}
 
 
 def configure(app):
@@ -63,6 +64,7 @@ def startup(app):
 
 def report(app):
     data = dict(app.status)
+    data['token'] = app.config['token']
     now = data['report_time'] = str(datetime.now())
     try:
         report_url = app.config.get('reportUrl', None)
