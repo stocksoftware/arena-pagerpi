@@ -145,6 +145,9 @@ def main(debug=False, verbose=True):
         signal.signal(signal.SIGTERM, pagerpi.shutdown_handler)
         pagerpi.main()
     except (_Shutdown, KeyboardInterrupt):
+        if debug:
+            import traceback
+            traceback.print_exc()
         pass
 
 
