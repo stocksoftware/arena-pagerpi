@@ -1,8 +1,8 @@
+from __future__ import print_function
 import sys
 import traceback
 from datetime import datetime
 
-outFileName = '/home/pi/pagerOut020.txt'
 pagerLineFile = '/home/pi/pager_lines.txt'
 
 class bcolors:
@@ -16,62 +16,31 @@ class bcolors:
     UNDERLINE = '\033[4m'
 
 
-def pager_log_json(params):
-    with open(outFileName, 'a') as f:
-        f.write(datetime.now().isoformat())
-        f.write("\n")
-        json.dump(params, f, indent=4)
-        f.write("\n")
+class Logger(object):
+    def __init__(self, verbose, line_file):
+        self.verbose = verbose
+        self.line_file = line_file
 
+    def pager_log_all(self, line):
+        if self.line_file is None:
+            return
+        with open(self.line_file, 'a') as f:
+            f.write(datetime.now().isoformat())
+            f.write("\n")
+            f.write(line)
+            f.write("\n")
 
-def pager_log_all(line):
-    with open(pagerLineFile, 'a') as f:
-        f.write(datetime.now().isoformat())
-        f.write("\n")
-        f.write(line)
-        f.write("\n")
+    def fail_and_exit(self, text):
+        """Log failure for next time we start, and exit the program.
+        """
+        print(datetime.now())
+        sys.exit(text)
 
-
-def start_logs():
-    now = datetime.now()
-    with open(outFileName, 'a') as f:
-        f.write(now.isoformat())
-        f.write("\nSTARTUP\n")
-
-    with open(pagerLineFile, 'a') as f:
-        f.write(now.isoformat())
-        f.write("\nSTARTUP\n")
-
-
-def stop_logs():
-    now = datetime.now()
-    with open(outFileName, 'a') as f:
-        f.write(now.isoformat())
-        f.write("\nSHUTDOWN\n")
-
-    with open(pagerLineFile, 'a') as f:
-        f.write(now.isoformat())
-        f.write("\nSHUTDOWN\n")
-
-
-def fail_and_exit(text):
-    """Log failure for next time we start, and exit the program.
-    """
-    with open(FAIL_LOG, 'a') as f:
-        f.write("%s\n" % datetime.now())
-        f.write(text)
-        f.write("\n")
-    sys.exit(text)
-
-def report_exception(app, e):
-    exception_text = traceback.format_exception_only(type(e), e)
-    now = datetime.now()
-    app.status['errors'].append({'ts' : now.isoformat(),
-                                 'message' : exception_text})
-    print bcolors.WARNING + "ERROR...."
-    print now.isoformat()
-    traceback.print_exc(limit=None if app.verbose else 1)
-    print bcolors.ENDC
+    def report_exception(self, now, e):
+        print(bcolors.WARNING + "ERROR....")
+        print(now.isoformat())
+        traceback.print_exc(limit=None if app.verbose else 1)
+        print(bcolors.ENDC)
 
 # def report_error(app, message):
 #     now = datetime.now()
@@ -82,3 +51,12 @@ def report_exception(app, e):
 #     print message
 #     print bcolors.ENDC
 
+class NullLogger(object):
+    def pager_log_all(self, line):
+        pass
+
+    def fail_and_exit(self, text):
+        sys.exit(text)
+
+    def report_exception(self, now, e):
+        pass

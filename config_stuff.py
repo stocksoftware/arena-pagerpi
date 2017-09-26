@@ -3,28 +3,14 @@
 
 from __future__ import print_function
 import requests
-import traceback
 import json
 import os
-import sys
 import os.path
 
 from subprocess import check_output, CalledProcessError
 from datetime import datetime
-from page_log import report_exception
 
 REPO = os.path.abspath(os.path.dirname(__file__))
-FAIL_LOG = os.path.join(os.path.dirname(REPO), 'fail.log')
-
-def fail_and_exit(text):
-    """Log failure for next time we start, and exit the program.
-    """
-    with open(FAIL_LOG, 'a') as f:
-        f.write("%s\n" % datetime.now())
-        f.write(text)
-        f.write("\n")
-    sys.exit(text)
-
 
 def form(d):
     return {'content' : json.dumps(d),
@@ -56,7 +42,7 @@ def startup(app):
         if report_url:
             requests.post(report_url + "/startup", data=form(app.config))
     except Exception as e:
-        report_exception(app, e)
+        app.on_exception(e)
         raise
 
 
@@ -70,7 +56,7 @@ def report(app):
             res = requests.post(report_url + "/report", data=form(data))
         res.raise_for_status()
     except (OSError, requests.exceptions.HTTPError) as e:
-        report_exception(app, e)
+        app.on_exception(e)
     else:
         app.status['errors'] = []
         app.status['last_report'] = now
@@ -104,12 +90,3 @@ def default_action(name):
         print("no such action %s (%d pos args)" % (name, len(args)))
     return action
 
-
-@action
-def clear_error():
-    os.remove(FAIL_LOG)
-
-
-if __name__ == '__main__':
-    STATUS['nteeth'] = 25
-    report()

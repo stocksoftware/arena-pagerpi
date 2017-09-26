@@ -1,4 +1,8 @@
 import application
+from page_log import NullLogger
+
+class AmazingException(Exception):
+    pass
 
 class FakeAPI(object):
     def __init__(self):
@@ -13,6 +17,7 @@ class FakeAPI(object):
         self.messages.append(('report', dict(app.status)))
         app.status['errors'] = []
 
+
 class FakePager(object):
     is_open = True
 
@@ -23,31 +28,14 @@ class FakePager(object):
         for line in self.content:
             return line
 
-class FakeLog(object):
-    def __init__(self):
-        self.log = []
-
-    def report_exception(self, app, exception):
-        self.log.append(exception.message)
-        app.status['errors'].append({'ts' : None,
-                                     'message' : exception.message})
-
-    def pager_log_all(self, data):
-        self.log.append(data)
-
-class FakePushover(object):
-    def send_message(self, *args, **kwargs):
-        pass
-
 
 def create_pager(pages):
     pagerpi = application.PagerPI(pager=FakePager(pages))
     pagerpi.pagerrc = ['tests', 'pagerrc.json']
     pagerpi.arena_api = FakeAPI()
-    pagerpi.log = FakeLog()
-    pagerpi.pushover = FakePushover()
+    pagerpi.config['silent'] = True
+    pagerpi.pushover = application.SilentPushover()
     return pagerpi
-
 
 def test_normal_interaction():
     pagerpi = create_pager(["Yes"])
@@ -68,7 +56,7 @@ def test_reconnect_on_report_failure():
             super(FailAPI, self).report(app)
             if self.report_fail:
                 self.report_fail = False
-                raise Exception("No dice.")
+                raise AmazingException("No dice.")
             else:
                 app.stop = True
 
@@ -96,6 +84,6 @@ def test_reconnect_on_report_failure():
     assert report_fail['last_read_time'] < report_success['last_read_time']
     assert recon[1]['last_read_time'] == report_fail['last_read_time']
     assert len(recon[1]['errors']) == 1
-    assert recon[1]['errors'][0]['message'] == 'No dice.'
+    assert recon[1]['errors'][0]['message'] == ['AmazingException: No dice.\n']
     assert not report_success['errors']
 

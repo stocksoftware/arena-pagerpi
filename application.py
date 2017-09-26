@@ -1,14 +1,16 @@
 from __future__ import print_function
+
+import config_stuff
 import serial
 import signal
-import page_log
-import config_stuff
-import time
 import requests
+import time
+import traceback
 
 from subprocess import check_output
 from datetime import datetime
 from read_page import handle_serial_data
+from page_log import Logger, NullLogger
 
 
 class SilentPushover(object):
@@ -28,12 +30,12 @@ class PagerPI(object):
 
     def __init__(self, pager=None, port='/dev/serial0', baud=9600,
                  timeout=5.*60):
+        self.config = {}
         self.pager = pager
         if pager is None:
             self.pager = serial.Serial(port=port, baudrate=baud,
                                        timeout=timeout)
         self.arena_api = config_stuff
-        self.log = page_log
         self.status = {'errors': [],
                        'alert_messages': 0,
                        'other_messages': 0,
@@ -43,6 +45,12 @@ class PagerPI(object):
             self.pushover = pushover.Client()
         except Exception:
             self.pushover = SilentPushover()
+
+    @property
+    def log(self):
+        if self.config.get('silent'):
+            return NullLogger()
+        return Logger(self.verbose, self.config.get('lineFile'))
 
     def sleep_interval(self):
         interval = self.start_sleep_intervals[self.start_sleep_idx]
@@ -54,7 +62,7 @@ class PagerPI(object):
         try:
             self.arena_api.startup(self)
         except Exception as e:
-            self.log.report_exception(self, e)
+            self.on_exception(e)
             self.need_sleep = self.sleep_interval()
             raise
         else:
@@ -106,14 +114,13 @@ class PagerPI(object):
             try:
                 self.main_once()
             except Exception as exception:
-                self.log.report_exception(self, exception)
+                self.on_exception(exception)
             if self.need_sleep is not None:
                 time.sleep(self.need_sleep)
                 self.need_sleep = None
 
     def shutdown_handler(self, signum, frame):
         print("Received shutdown signal")
-        self.log.stop_logs()
         raise _SHUTDOWN
 
     def send_addresses(self):
@@ -130,6 +137,14 @@ class PagerPI(object):
                                  headers=headers, data=message)
         response.raise_for_status()
 
+    def on_exception(self, exception):
+        exception_text = traceback.format_exception_only(type(exception),
+                                                         exception)
+        now = datetime.now()
+        self.status['errors'].append({'ts' : now.isoformat(),
+                                      'message' : exception_text})
+        self.log.report_exception(now, exception)
+
 
 
 class _Shutdown(BaseException):
@@ -142,7 +157,6 @@ def main(debug=False, verbose=True, no_pushover=False):
     print("PagerPI Start")
     if verbose:
         print(datetime.now().isoformat())
-    page_log.start_logs()
     try:
         pagerpi = PagerPI()
         pagerpi.debug = debug
