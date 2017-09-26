@@ -25,12 +25,17 @@ def configure(app):
         app.config['revision'] = check_output(["git", "describe", "--tags"],
                                               cwd=REPO)
     except CalledProcessError:
-        app.config['revision'] = 'Unknown'
+        pass
 
     try:
         app.config['ip_address'] = check_output(["hostname", "-I"])
     except CalledProcessError:
-        app.config['ip_address'] = 'not connected?'
+        pass
+
+    try:
+        app.config['hostname'] = check_output(["hostname", "-f"])
+    except CalledProcessError:
+        pass
 
 
 def startup(app):
@@ -44,6 +49,7 @@ def startup(app):
                 'token' : app.config['token'],
                 'ip_address' : app.config.get('ip_address', '?'),
                 'revision' : app.config.get('revision', '?'),
+                'hostname' : app.config.get('hostname', '?'),
             })
     except Exception as e:
         app.on_exception(e)
