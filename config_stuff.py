@@ -28,9 +28,9 @@ def configure(app):
         app.config['revision'] = 'Unknown'
 
     try:
-        app.config['ip_address'] = check_output(["hostname", "-I"]).split()
+        app.config['ip_address'] = check_output(["hostname", "-I"])
     except CalledProcessError:
-        app.config['ip_address'] = ['not connected?']
+        app.config['ip_address'] = 'not connected?'
 
 
 def startup(app):
@@ -40,7 +40,11 @@ def startup(app):
         configure(app)
         report_url = app.config.get('reportUrl', '')
         if report_url:
-            requests.post(report_url + "/startup", data=form(app.config))
+            requests.post(report_url + "/startup", data={
+                'token' : app.config['token'],
+                'ip_address' : app.config.get('ip_address', '?'),
+                'revision' : app.config.get('revision', '?'),
+            })
     except Exception as e:
         app.on_exception(e)
         raise
