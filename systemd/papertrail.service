@@ -1,7 +1,7 @@
 [Unit]
 Description=Papertrail
-After=systemd-journald.service
-Requires=systemd-journald.service
+After=systemd-journald.service network-online.target
+Requires=systemd-journald.service network-online.target
 
 [Service]
 ExecStart=/bin/sh -c "journalctl -f | ncat --ssl PAPERTRAIL_SERVER.papertrailapp.com PAPERTRAIL_PORT"
