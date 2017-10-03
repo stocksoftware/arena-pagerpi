@@ -30,6 +30,7 @@ class PagerPI(object):
 
     def __init__(self, pager=None, port='/dev/serial0', baud=9600,
                  timeout=5.*60):
+        self.messages = []
         self.config = {}
         self.pager = pager
         if pager is None:
@@ -94,11 +95,20 @@ class PagerPI(object):
 
         if data:
             self.status['last_read_time'] = datetime.now()
+            self.messages.append({'ts' : str(datetime.now()),
+                                  'message' : data})
             self.log.pager_log_all(data)
             # parse & handle the data that we read
             handle_serial_data(self, data)
         elif self.verbose:
             print('No data within timeout period')
+
+        try:
+            while self.messages:
+                message = self.messages.pop(0)
+                self.arena_api.log_message(self, message)
+        except Exception:
+            pass
         
         try:
             self.arena_api.report(self)

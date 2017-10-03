@@ -45,12 +45,14 @@ def startup(app):
         configure(app)
         report_url = app.config.get('reportUrl', '')
         if report_url:
-            requests.post(report_url + "/startup", data={
+            res = requests.post(report_url + "/startup", data={
                 'token' : app.config['token'],
                 'ip_address' : app.config.get('ip_address', '?'),
                 'revision' : app.config.get('revision', '?'),
                 'hostname' : app.config.get('hostname', '?'),
             })
+            res.raise_for_status()
+            app.config['status_key'] = res.text
     except Exception as e:
         app.on_exception(e)
         raise
@@ -64,6 +66,26 @@ def report(app):
         report_url = app.config.get('reportUrl', None)
         if report_url:
             res = requests.post(report_url + "/report", data=form(data))
+        res.raise_for_status()
+    except (OSError, requests.exceptions.HTTPError) as e:
+        app.on_exception(e)
+    else:
+        app.status['errors'] = []
+        app.status['last_report'] = now
+        perform(res)
+
+
+def log_message(app, message):
+    data = {
+        'token': app.config['token'],
+        'status_key': app.config['status_key'],
+        'message': message['message'],
+        'ts' : message['ts'],
+    }
+    try:
+        report_url = app.config.get('reportUrl', None)
+        if report_url:
+            res = requests.post(report_url + "/message", data=data)
         res.raise_for_status()
     except (OSError, requests.exceptions.HTTPError) as e:
         app.on_exception(e)
