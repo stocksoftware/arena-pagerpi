@@ -52,7 +52,7 @@ def startup(app):
                 'hostname' : app.config.get('hostname', '?'),
             })
             res.raise_for_status()
-            app.config['status_key'] = res.text
+            app.config['status_key'] = res.json()['key']
     except Exception as e:
         app.on_exception(e)
         raise
