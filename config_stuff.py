@@ -78,6 +78,7 @@ def report(app):
 def log_message(app, message):
     data = {
         'token': app.config['token'],
+        'hostname': app.config['hostname'],
         'status_key': app.config['status_key'],
         'message': message['message'],
         'ts' : message['ts'],
