@@ -107,8 +107,8 @@ class PagerPI(object):
             while self.messages:
                 message = self.messages.pop(0)
                 self.arena_api.log_message(self, message)
-        except Exception:
-            pass
+        except Exception as exception:
+            self.on_exception(exception)
         
         try:
             self.arena_api.report(self)

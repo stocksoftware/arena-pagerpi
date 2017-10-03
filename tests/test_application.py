@@ -12,10 +12,12 @@ class FakeAPI(object):
         self.messages.append(('startup', dict(app.status)))
         app.status['errors'] = []
 
-
     def report(self, app):
         self.messages.append(('report', dict(app.status)))
         app.status['errors'] = []
+
+    def log_message(self, app, message):
+        pass
 
 
 class FakePager(object):
