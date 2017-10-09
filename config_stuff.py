@@ -78,6 +78,7 @@ def report(app):
 
 
 def log_messages(app, messages):
+    now = str(datetime.now())
     data = {
         'token': app.config['token'],
         'hostname': app.config['hostname'],
