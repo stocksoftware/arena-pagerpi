@@ -9,14 +9,14 @@ class FakeAPI(object):
         self.messages = []
 
     def startup(self, app):
-        self.messages.append(('startup', dict(app.status)))
+        self.messages.append(('startup', dict(app.status), app.errors))
         app.errors = {}
 
     def report(self, app):
-        self.messages.append(('report', dict(app.status)))
+        self.messages.append(('report', dict(app.status), app.errors))
         app.errors = {}
 
-    def log_message(self, app, message):
+    def log_messages(self, app, message):
         pass
 
 
@@ -45,8 +45,8 @@ def test_normal_interaction():
     assert len(pagerpi.arena_api.messages) == 2
     startup, report = pagerpi.arena_api.messages
     assert startup == (
-        'startup', {'errors': [], 'alert_messages': 0, 'other_messages': 0,
-                    'last_read_time' : None})
+        'startup', {'alert_messages': 0, 'other_messages': 0,
+                    'last_read_time' : None}, {})
     assert report[0] == 'report'
     assert 'last_read_time' in report[1]
     assert report[1]['other_messages'] == 1
@@ -75,17 +75,17 @@ def test_reconnect_on_report_failure():
     pagerpi.main()
     
     assert len(pagerpi.arena_api.messages) == 4
-
-    startup, (_, report_fail), recon, (_, report_success) = (
-        pagerpi.arena_api.messages)
+    _, report_fail, errors_fail = pagerpi.arena_api.messages[1]
+    _, report_recon, errors_recon = pagerpi.arena_api.messages[2]
+    _, report_success, errors_success = pagerpi.arena_api.messages[3]
 
     print pagerpi.arena_api.messages
 
     assert report_fail['last_read_time'] is not None
     assert report_success['last_read_time'] is not None
     assert report_fail['last_read_time'] < report_success['last_read_time']
-    assert recon[1]['last_read_time'] == report_fail['last_read_time']
-    assert len(recon[1]['errors']) == 1
-    assert recon[1]['errors'][0]['message'] == ['AmazingException: No dice.\n']
-    assert not report_success['errors']
+    assert report_recon['last_read_time'] == report_fail['last_read_time']
+    assert len(errors_recon) == 1
+    assert 'AmazingException: No dice.\n' in errors_recon
+    assert not errors_success
 

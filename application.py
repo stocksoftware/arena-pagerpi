@@ -39,8 +39,7 @@ class PagerPI(object):
             self.pager = serial.Serial(port=port, baudrate=baud,
                                        timeout=timeout)
         self.arena_api = config_stuff
-        self.status = {'errors': [],
-                       'alert_messages': 0,
+        self.status = {'alert_messages': 0,
                        'other_messages': 0,
                        'last_read_time': None}
         try:
@@ -183,20 +182,15 @@ class PagerPI(object):
     def on_unhandled_message(self, message):
         self.messages.append({'ts' : str(datetime.now()),
                               'type' : 'pager_message',
-                              'message' : data})
+                              'message' : message})
         self.status['other_messages'] += 1
 
     def on_exception(self, exception):
         exception_text = traceback.format_exception_only(type(exception),
                                                          exception)
         now = datetime.now()
-        self.errors.getdefault(exception_text, []).append(
+        self.errors.setdefault(''.join(exception_text), []).append(
             {'ts' : now.isoformat()})
-        self.status['errors'].append({'ts' : now.isoformat(),
-                                      'message' : exception_text})
-        self.messages.append({'ts' : str(now),
-                              'type' : 'exception',
-                              'message' : ''.join(exception_text)})
         self.log.report_exception(now, exception)
 
 

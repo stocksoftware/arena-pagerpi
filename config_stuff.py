@@ -70,7 +70,6 @@ def report(app):
     except (OSError, requests.exceptions.HTTPError) as e:
         app.on_exception(e)
     else:
-        app.status['errors'] = []
         app.status['last_report'] = now
         perform(res)
 
@@ -92,7 +91,6 @@ def log_message(app, messages):
         app.on_exception(e)
     else:
         app.errors = {}
-        app.status['errors'] = []
         app.status['last_report'] = now
         perform(res)
 
