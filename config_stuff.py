@@ -68,7 +68,7 @@ def report(app):
     try:
         report_url = app.config.get('reportUrl', None)
         if report_url:
-            res = requests.post(report_url + "/report", data=form(data))
+            res = requests.post(report_url + "/report", data=data)
         res.raise_for_status()
     except (OSError, requests.exceptions.HTTPError) as e:
         app.on_exception(e)
