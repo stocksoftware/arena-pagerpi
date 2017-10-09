@@ -3,17 +3,6 @@ import random
 from datetime import datetime
 
 
-def handle_serial_data(app, pager_message):
-    alert = read_alert_message(app, pager_message)
-    if alert:
-        if app.verbose:
-            show_alert_message(pager_message, alert)
-        else:
-            print 'alert message: %r' % (alert['message'],)
-        app.on_alert_message(alert)
-    else:
-        app.status['other_messages'] += 1
-        print 'other message: %r' % (pager_message,)
 
 
 def read_alert_message(app, data):

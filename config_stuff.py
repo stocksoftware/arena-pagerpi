@@ -75,13 +75,13 @@ def report(app):
         perform(res)
 
 
-def log_message(app, message):
+def log_message(app, messages):
     data = {
         'token': app.config['token'],
         'hostname': app.config['hostname'],
         'status_key': app.config['status_key'],
-        'message': message['message'],
-        'ts' : message['ts'],
+        'messages': json.dumps(messages),
+        'errors': json.dumps(app.errors),
     }
     try:
         report_url = app.config.get('reportUrl', None)
@@ -91,6 +91,7 @@ def log_message(app, message):
     except (OSError, requests.exceptions.HTTPError) as e:
         app.on_exception(e)
     else:
+        app.errors = {}
         app.status['errors'] = []
         app.status['last_report'] = now
         perform(res)

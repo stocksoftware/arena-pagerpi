@@ -6,10 +6,11 @@ import signal
 import requests
 import time
 import traceback
+import read_page
+import random
 
 from subprocess import check_output
 from datetime import datetime
-from read_page import handle_serial_data
 from page_log import Logger, NullLogger
 
 
@@ -31,6 +32,7 @@ class PagerPI(object):
     def __init__(self, pager=None, port='/dev/serial0', baud=9600,
                  timeout=5.*60):
         self.messages = []
+        self.errors = {}
         self.config = {}
         self.pager = pager
         if pager is None:
@@ -95,20 +97,19 @@ class PagerPI(object):
 
         if data:
             self.status['last_read_time'] = datetime.now()
-            self.messages.append({'ts' : str(datetime.now()),
-                                  'message' : data})
             self.log.pager_log_all(data)
             # parse & handle the data that we read
-            handle_serial_data(self, data)
+            self.handle_serial_data(data)
         elif self.verbose:
             print('No data within timeout period')
 
-        try:
-            while self.messages:
-                message = self.messages.pop(0)
-                self.arena_api.log_message(self, message)
-        except Exception as exception:
-            self.on_exception(exception)
+        if self.messages:
+            try:
+                self.arena_api.log_messages(self, self.messages)
+            except Exception as exception:
+                self.on_exception(exception)
+            else:
+                self.messages = []
         
         try:
             self.arena_api.report(self)
@@ -140,19 +141,62 @@ class PagerPI(object):
             self.pushover.send_message(ip_addresses, title="My IP")
             self.ip_addresses = ip_addresses
 
-    def on_alert_message(self, message):
+    def handle_serial_data(self, pager_message):
+        alert = read_page.read_alert_message(self, pager_message)
+        if alert:
+            if self.debug and alert['latitude'] is None:
+                self.make_random_geo(alert)
+            if self.verbose:
+                read_page.show_alert_message(pager_message, alert)
+            else:
+                print('alert message: %r' % (alert['message'],))
+            self.on_alert_message(alert)
+        else:
+            self.on_unhandled_message(pager_message)
+            print('other message: %r' % (pager_message,))
+
+    def make_random_geo(self, alert):
+        """For debugging the Arena integration.
+
+        Generate a random location and whether it is an aircraft message.
+        """
+        if app.verbose:
+            print("NO Geo Coords - going random!")
+        alert['latitude'] = -37.616+random.uniform(-1, 1)
+        alert['longitude'] = 144.420+random.uniform(-1, 1)
+        if random.randint(0,9) > 5:
+            if app.verbose:
+                print("Random aircraft message generated!")
+            alert['aircraftMsg'] = 1
+
+    def on_alert_message(self, alert):
+        self.messages.append({'ts' : str(datetime.now()),
+                              'type' : 'alert',
+                              'message' : alert['message']})
         headers = {"x-version": self.config['xver'],
                    "authorization": self.config['auth']}
         response = requests.post(self.config['pddUrl'],
-                                 headers=headers, data=message)
+                                 headers=headers, data=alert)
         response.raise_for_status()
+        self.status['alert_messages'] += 1
+
+    def on_unhandled_message(self, message):
+        self.messages.append({'ts' : str(datetime.now()),
+                              'type' : 'pager_message',
+                              'message' : data})
+        self.status['other_messages'] += 1
 
     def on_exception(self, exception):
         exception_text = traceback.format_exception_only(type(exception),
                                                          exception)
         now = datetime.now()
+        self.errors.getdefault(exception_text, []).append(
+            {'ts' : now.isoformat()})
         self.status['errors'].append({'ts' : now.isoformat(),
                                       'message' : exception_text})
+        self.messages.append({'ts' : str(now),
+                              'type' : 'exception',
+                              'message' : ''.join(exception_text)})
         self.log.report_exception(now, exception)
 
 

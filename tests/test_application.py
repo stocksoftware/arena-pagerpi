@@ -10,11 +10,11 @@ class FakeAPI(object):
 
     def startup(self, app):
         self.messages.append(('startup', dict(app.status)))
-        app.status['errors'] = []
+        app.errors = {}
 
     def report(self, app):
         self.messages.append(('report', dict(app.status)))
-        app.status['errors'] = []
+        app.errors = {}
 
     def log_message(self, app, message):
         pass
