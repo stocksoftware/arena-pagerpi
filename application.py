@@ -190,7 +190,7 @@ class PagerPI(object):
                                                          exception)
         now = datetime.now()
         self.errors.setdefault(''.join(exception_text), []).append(
-            {'ts' : now.isoformat()})
+            {'ts' : str(now)})
         self.log.report_exception(now, exception)
 
 

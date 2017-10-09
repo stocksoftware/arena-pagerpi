@@ -61,6 +61,9 @@ def startup(app):
 def report(app):
     data = dict(app.status)
     data['token'] = app.config['token']
+    last_read_time = data['last_read_time']
+    if last_read_time is not None:
+        data['last_read_time'] = str(last_read_time)
     now = data['report_time'] = str(datetime.now())
     try:
         report_url = app.config.get('reportUrl', None)
@@ -74,7 +77,7 @@ def report(app):
         perform(res)
 
 
-def log_message(app, messages):
+def log_messages(app, messages):
     data = {
         'token': app.config['token'],
         'hostname': app.config['hostname'],
