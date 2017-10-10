@@ -176,10 +176,11 @@ class PagerPI(object):
         headers = {"x-version": self.config['xver'],
                    "authorization": self.config['auth'],
                    "content-type": "application/x-www-form-urlencoded"}
-        response = requests.post(self.config['pddUrl'],
-                                 headers=headers,
-                                 data=urllib.urlencode(alert))
-        response.raise_for_status()
+        if alert['lat'] is not None:
+            response = requests.post(self.config['pddUrl'],
+                                     headers=headers,
+                                     data=urllib.urlencode(alert))
+            response.raise_for_status()
         self.status['alert_messages'] += 1
 
     def on_unhandled_message(self, message):
