@@ -39,7 +39,7 @@ class Logger(object):
     def report_exception(self, now, e):
         print(bcolors.WARNING + "ERROR....")
         print(now.isoformat())
-        traceback.print_exc(limit=None if self.verbose else 1)
+        traceback.print_exc()#limit=None if self.verbose else 1)
         print(bcolors.ENDC)
 
 # def report_error(app, message):
