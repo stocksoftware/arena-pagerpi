@@ -61,6 +61,7 @@ def startup(app):
 def report(app):
     data = dict(app.status)
     data['token'] = app.config['token']
+    data['status_key'] = app.config['status_key']
     last_read_time = data['last_read_time']
     if last_read_time is not None:
         data['last_read_time'] = str(last_read_time)
@@ -69,7 +70,7 @@ def report(app):
         report_url = app.config.get('reportUrl', None)
         if report_url:
             res = requests.post(report_url + "/report", data=data)
-        res.raise_for_status()
+            res.raise_for_status()
     except (OSError, requests.exceptions.HTTPError) as e:
         app.on_exception(e)
     else:
@@ -89,8 +90,8 @@ def log_messages(app, messages):
     try:
         report_url = app.config.get('reportUrl', None)
         if report_url:
-            res = requests.post(report_url + "/message", data=data)
-        res.raise_for_status()
+            res = requests.post(report_url + "/message2", data=data)
+            res.raise_for_status()
     except (OSError, requests.exceptions.HTTPError) as e:
         app.on_exception(e)
     else:
