@@ -1,0 +1,39 @@
+#!/usr/bin/env python
+# -*- mode: python -*-
+
+import sys
+import config_stuff
+from config_stuff import configure as configure_
+from application import PagerPI
+
+
+class StdinPager(object):
+    is_open = True
+
+    def readline(self):
+        return raw_input("pager line: ")
+
+    def close(self):
+        pass
+
+
+def configure(app):
+    configure_(app)
+    if app.is_local:
+        app.config['reportUrl'] = app.config['localReportUrl']
+
+# XXX monkey patch
+config_stuff.configure = configure
+
+
+def main():
+    pagerpi = PagerPI(pager=StdinPager())
+    pagerpi.debug = True
+    pagerpi.verbose = True
+    pagerpi.send_addresses = lambda: None
+    pagerpi.is_local = "--local" in sys.argv
+    pagerpi.main()
+
+
+if __name__ == '__main__':
+    main()
