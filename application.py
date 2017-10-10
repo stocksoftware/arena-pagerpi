@@ -8,6 +8,7 @@ import time
 import traceback
 import read_page
 import random
+import urllib
 
 from subprocess import check_output
 from datetime import datetime
@@ -173,9 +174,11 @@ class PagerPI(object):
                               'type' : 'alert',
                               'message' : alert['message']})
         headers = {"x-version": self.config['xver'],
-                   "authorization": self.config['auth']}
+                   "authorization": self.config['auth'],
+                   "content-type": "application/x-www-form-urlencoded"}
         response = requests.post(self.config['pddUrl'],
-                                 headers=headers, data=alert)
+                                 headers=headers,
+                                 data=urllib.urlencode(alert))
         response.raise_for_status()
         self.status['alert_messages'] += 1
 
