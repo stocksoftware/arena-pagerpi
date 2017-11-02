@@ -19,30 +19,33 @@ def form(d):
 
 def configure(app):
     with open(os.path.join(REPO, *app.pagerrc)) as f:
-        app.config = json.load(f)
+        config = json.load(f)
 
     try:
-        app.config['revision'] = check_output(["git", "describe", "--tags"],
-                                              cwd=REPO)
+        config['revision'] = check_output(["git", "describe", "--tags"],
+                                          cwd=REPO)
     except CalledProcessError:
         pass
 
     try:
-        app.config['ip_address'] = check_output(["hostname", "-I"])
+        config['ip_address'] = check_output(["hostname", "-I"])
     except CalledProcessError:
         pass
 
     try:
-        app.config['hostname'] = check_output(["hostname", "-f"])
+        config['hostname'] = check_output(["hostname", "-f"])
     except CalledProcessError:
         pass
+
+    config.update(app.default_config)
+    return config
 
 
 def startup(app):
     """Report startup information to Arena and get configuration data.
     """
     try:
-        configure(app)
+        app.config = configure(app)
         report_url = app.config.get('reportUrl', '')
         if report_url:
             res = requests.post(report_url + "/startup", data={

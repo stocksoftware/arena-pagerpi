@@ -34,6 +34,7 @@ class PagerPI(object):
                  timeout=5.*60):
         self.messages = []
         self.errors = {}
+        self.default_config = {}
         self.config = {}
         self.pager = pager
         if pager is None:
