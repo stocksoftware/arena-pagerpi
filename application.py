@@ -230,7 +230,11 @@ class PagerPI(object):
 
 
 class _Shutdown(BaseException):
-    pass
+    """A request for shutdown of the pager service.
+
+    Note that this is a BaseException, which means it will not be
+    caught by the usual exception machinery.
+    """
 
 _SHUTDOWN = _Shutdown("TERM signal received")
 
