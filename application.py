@@ -13,6 +13,8 @@ import urllib
 from subprocess import check_output
 from datetime import datetime
 from page_log import Logger, NullLogger
+from status_api import StatusLog
+from actions import perform
 
 
 class SilentPushover(object):
@@ -23,7 +25,7 @@ class PagerPI(object):
     debug = False
     verbose = False
     stop = False
-    start_sleep_idx = 0
+    startup_attempt = 0
     needs_startup = True
     start_sleep_intervals = [5, 15, 30, 60, 120, 240]
     need_sleep = None
@@ -32,18 +34,41 @@ class PagerPI(object):
 
     def __init__(self, pager=None, port='/dev/serial0', baud=9600,
                  timeout=5.*60):
+        # A list of pager messages that we have received but not
+        # logged to the status server.
         self.messages = []
+
+        # A map from traceback to a list of timestamps of when the
+        # errors occurred that have not yet been sent to the status
+        # server.
         self.errors = {}
+
+        # Configuration values that can be set to override the pagerrc
+        # file.
         self.default_config = {}
+
+        # Loaded configuration.
         self.config = {}
+
+        # Actions requested by the server, yet to be performed.
+        self.actions = []
+        self.perform = perform
+
+        # The serial device that we are reading pager messages from.
         self.pager = pager
         if pager is None:
             self.pager = serial.Serial(port=port, baudrate=baud,
                                        timeout=timeout)
-        self.arena_api = config_stuff
+
+        # An object that sends messages to the status service.
+        self.status_log = StatusLog(self)
+
+        # Application metrics.
         self.status = {'alert_messages': 0,
                        'other_messages': 0,
                        'last_read_time': None}
+
+        # An object that can send messages via pushover.
         try:
             import pushover
             self.pushover = pushover.Client()
@@ -56,27 +81,39 @@ class PagerPI(object):
             return NullLogger()
         return Logger(self.verbose, self.config.get('lineFile'))
 
-    def sleep_interval(self):
-        interval = self.start_sleep_intervals[self.start_sleep_idx]
-        if self.start_sleep_idx + 1 < len(self.start_sleep_intervals):
-            self.start_sleep_idx += 1
-        return interval
-
     def startup(self):
+        """Perform startup tasks
+        """
         try:
-            self.arena_api.startup(self)
+            # report our IP address via pushover.
+            self.send_addresses()
+
+            # load configuration data.
+            self.config = config_stuff.configure(self)
+
+            # report to the status server that we have started.
+            self.status_log.startup()
         except Exception as e:
             self.on_exception(e)
-            self.need_sleep = self.sleep_interval()
+
+            # don't try to start up again for this many seconds.
+            sleep_intervals = self.start_sleep_intervals
+            if self.startup_attempt < len(sleep_intervals):
+                self.need_sleep = sleep_intervals[self.startup_attempt]
+                self.startup_attempt += 1
+            else:
+                self.need_sleep = sleep_intervals[-1]
             raise
         else:
-            self.start_sleep_idx = 0
+            self.startup_attempt = 0
             self.needs_startup = False
 
     def main_once(self):
+        # Perform any pending requested actions.
+        while self.actions:
+            self.perform(self, self.actions.pop(0))
+
         if self.needs_startup:
-            # report our IP to admin.
-            self.send_addresses()
             # Connect to the server to report our version and state.
             self.startup()
 
@@ -99,28 +136,21 @@ class PagerPI(object):
         if data:
             self.status['last_read_time'] = datetime.now()
             self.log.pager_log_all(data)
-            # parse & handle the data that we read
+            # parse & handle the data that we read.  this will create
+            # a pdd request in Arena if the message is an alert.
             self.handle_serial_data(data)
         elif self.verbose:
             print('No data within timeout period')
 
-        if self.messages:
-            try:
-                self.arena_api.log_messages(self, self.messages)
-            except Exception as exception:
-                self.on_exception(exception)
-            else:
-                self.messages = []
-        
+        # notify the status server of our activity.
         try:
-            self.arena_api.report(self)
-        except Exception:
-            self.needs_startup = True
-            raise
+            self.status_log.message(self.messages, self.errors)
+        except Exception as exception:
+            self.on_exception(exception)
         else:
-            if self.verbose:
-                print('Reported to Arena')
-        
+            self.messages = []
+            self.errors = {}
+
     def main(self):
         while not self.stop:
             try:
@@ -197,7 +227,6 @@ class PagerPI(object):
         self.errors.setdefault(''.join(exception_text), []).append(
             {'ts' : str(now)})
         self.log.report_exception(now, exception)
-
 
 
 class _Shutdown(BaseException):
