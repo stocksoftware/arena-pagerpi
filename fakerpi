@@ -2,37 +2,35 @@
 # -*- mode: python -*-
 
 import sys
-import config_stuff
-from config_stuff import configure as configure_
 from application import PagerPI
 
+class Shutdown(BaseException):
+    pass
 
 class StdinPager(object):
     is_open = True
 
     def readline(self):
-        return raw_input("pager line: ")
+        try:
+            return raw_input("pager line: ")
+        except (EOFError, KeyboardInterrupt):
+            raise Shutdown()
 
     def close(self):
         pass
 
 
-def configure(app):
-    configure_(app)
-    if app.is_local:
-        app.config['reportUrl'] = app.config['localReportUrl']
-
-# XXX monkey patch
-config_stuff.configure = configure
-
-
 def main():
     pagerpi = PagerPI(pager=StdinPager())
+    if "--local" in sys.argv:
+        pagerpi.default_config['pager_log_host'] = 'http://localhost:8080/'
     pagerpi.debug = True
     pagerpi.verbose = True
     pagerpi.send_addresses = lambda: None
-    pagerpi.is_local = "--local" in sys.argv
-    pagerpi.main()
+    try:
+        pagerpi.main()
+    except Shutdown:
+        print
 
 
 if __name__ == '__main__':

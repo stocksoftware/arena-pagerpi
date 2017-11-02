@@ -1,4 +1,5 @@
 from __future__ import print_function
+import os
 import sys
 import traceback
 from datetime import datetime
@@ -24,6 +25,8 @@ class Logger(object):
     def pager_log_all(self, line):
         if self.line_file is None:
             return
+        if os.stat(self.line_file).st_size >  (1 << 20):
+            os.remove(self.line_file)
         with open(self.line_file, 'a') as f:
             f.write(datetime.now().isoformat())
             f.write("\n")
@@ -42,14 +45,6 @@ class Logger(object):
         traceback.print_exc()#limit=None if self.verbose else 1)
         print(bcolors.ENDC)
 
-# def report_error(app, message):
-#     now = datetime.now()
-#     app.status['errors'].append({'ts' : now.isoformat(),
-#                                  'message' : message})
-#     print bcolors.WARNING + "ERROR...."
-#     print now.isoformat()
-#     print message
-#     print bcolors.ENDC
 
 class NullLogger(object):
     def pager_log_all(self, line):
