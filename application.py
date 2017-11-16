@@ -217,7 +217,7 @@ class PagerPI(object):
     def on_unhandled_message(self, message):
         self.messages.append({'ts' : str(datetime.now()),
                               'type' : 'pager_message',
-                              'message' : message})
+                              'message' : read_page.clean_message(message)})
         self.status['other_messages'] += 1
 
     def on_exception(self, exception):

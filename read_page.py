@@ -3,6 +3,9 @@ import random
 from datetime import datetime
 
 
+def clean_message(message):
+    return ''.join(e for e in message
+                   if (e.isalnum() or e.isspace() or e=='/'))
 
 
 def read_alert_message(app, data):
@@ -70,8 +73,6 @@ def read_alert_message(app, data):
       resource = data[lSqBracketIdx+2:rSqBracketIdx]
     msgStart = data.find(pieces[6]) 
     message = data[msgStart:dirIdx]
-    cleanMsg = ''.join(e for e in message
-                       if (e.isalnum() or e.isspace() or e=='/'))
     return {
         'msgType' : msgType,
         'capCode' : capCode,
@@ -87,7 +88,7 @@ def read_alert_message(app, data):
         'lat' : latitude,
         'lon' : longitude,
         'rssi' : rssi,
-        'message' : cleanMsg,
+        'message' : clean_message(message),
     }
 
 def show_alert_message(message):
