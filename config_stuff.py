@@ -10,8 +10,8 @@ from subprocess import Popen, PIPE
 REPO = abspath(dirname(__file__))
 
 
-def configure(app):
-    with open(join(REPO, *app.pagerrc)) as f:
+def configure(pagerrc, default_config):
+    with open(join(REPO, *pagerrc)) as f:
         config = json.load(f)
 
     def _set_from_application(field, cmd, **kwargs):
@@ -21,5 +21,5 @@ def configure(app):
     _set_from_application('ip_address', ["hostname", "-I"])
     _set_from_application('hostname', ["hostname", "-f"])
 
-    config.update(app.default_config)
+    config.update(default_config)
     return config

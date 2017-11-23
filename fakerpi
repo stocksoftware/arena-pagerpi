@@ -20,10 +20,21 @@ class StdinPager(object):
         pass
 
 
+class StdoutPushover(object):
+    def send_message(self, message, title="Message", profile="Default"):
+        sys.stdout.write("Pushover: %r [%s]" % (title, profile))
+        sys.stdout.write(message)
+        sys.stdout.write("\n")
+
+
 def main():
-    pagerpi = PagerPI(pager=StdinPager())
+    default_config = {}
     if "--local" in sys.argv:
-        pagerpi.default_config['pager_log_host'] = 'http://localhost:8080/'
+        default_config['pager_log_host'] = 'http://localhost:8080/'
+    pagerpi = PagerPI(pager=StdinPager(), default_config=default_config)
+    if "--real-pushover" not in sys.argv:
+        pagerpi.pushover = StdoutPushover()
+        pagerpi.public_pushover = StdoutPushover()
     pagerpi.debug = True
     pagerpi.verbose = True
     pagerpi.send_addresses = lambda: None

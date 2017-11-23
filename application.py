@@ -30,10 +30,9 @@ class PagerPI(object):
     start_sleep_intervals = [5, 15, 30, 60, 120, 240]
     need_sleep = None
     ip_addresses = "UNSET"
-    pagerrc = ['..', 'pagerrc.json']
 
     def __init__(self, pager=None, port='/dev/serial0', baud=9600,
-                 timeout=5.*60):
+                 timeout=5.*60, override_config=None, pagerrc=None):
         # A list of pager messages that we have received but not
         # logged to the status server.
         self.messages = []
@@ -43,12 +42,11 @@ class PagerPI(object):
         # server.
         self.errors = {}
 
-        # Configuration values that can be set to override the pagerrc
-        # file.
-        self.default_config = {}
+        if pagerrc is None:
+            pagerrc = ['..', 'pagerrc.json']
 
-        # Loaded configuration.
-        self.config = {}
+        # load configuration data.
+        self.config = config_stuff.configure(pagerrc, override_config or {})
 
         # Actions requested by the server, yet to be performed.
         self.actions = []
@@ -72,8 +70,10 @@ class PagerPI(object):
         try:
             import pushover
             self.pushover = pushover.Client()
+            self.public_pushover = pushover.Client(profile="Public")
         except Exception:
             self.pushover = SilentPushover()
+            self.public_pushover = self.pushover
 
     @property
     def log(self):
@@ -87,9 +87,6 @@ class PagerPI(object):
         try:
             # report our IP address via pushover.
             self.send_addresses()
-
-            # load configuration data.
-            self.config = config_stuff.configure(self)
 
             # report to the status server that we have started.
             self.status_log.startup()
@@ -175,10 +172,10 @@ class PagerPI(object):
     def handle_serial_data(self, pager_message):
         alert = read_page.read_alert_message(self, pager_message)
         if alert:
-            if self.debug and alert['latitude'] is None:
+            if self.debug and alert['lat'] is None:
                 self.make_random_geo(alert)
             if self.verbose:
-                read_page.show_alert_message(pager_message, alert)
+                read_page.show_alert_message(alert)
             else:
                 print('alert message: %r' % (alert['message'],))
             self.on_alert_message(alert)
@@ -200,10 +197,15 @@ class PagerPI(object):
                 print("Random aircraft message generated!")
             alert['aircraftMsg'] = 1
 
+    def send_public_message(self, alert):
+        self.public_pushover.send_message(alert['message'],
+                                          title="CFA Alert")
+
     def on_alert_message(self, alert):
         self.messages.append({'ts' : str(datetime.now()),
                               'type' : 'alert',
                               'message' : alert['message']})
+        self.send_public_message(alert)
         headers = {"x-version": self.config['xver'],
                    "authorization": self.config['auth'],
                    "content-type": "application/x-www-form-urlencoded"}

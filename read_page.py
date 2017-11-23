@@ -1,6 +1,7 @@
 import sys
 import random
 from datetime import datetime
+from page_log import bcolors
 
 
 def clean_message(message):
@@ -93,8 +94,8 @@ def read_alert_message(app, data):
 
 def show_alert_message(message):
     print "\a " + bcolors.WARNING
-    print datetime.datetime.now().isoformat()
-    print " ALERT: %s " % messages['cleanMsg'] + bcolors.ENDC
+    print datetime.now().isoformat()
+    print " ALERT: %s " % message['message'] + bcolors.ENDC
     print "  msgType: %s" % message['msgType']
     print "  capCode: %s" % message['capCode']
     print "  assignmentArea: %s" % message['assignmentArea']
@@ -108,5 +109,5 @@ def show_alert_message(message):
     print "  latitude: %s" % message['lat']
     print "  longitude: %s" % message['lon']
     print "  rssi: %s" % message['rssi']
-    print "  message: %s" % message['cleanMsg']
+    print "  message: %s" % message['message']
     print " "
