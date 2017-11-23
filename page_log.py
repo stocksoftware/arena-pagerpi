@@ -4,7 +4,7 @@ import sys
 import traceback
 from datetime import datetime
 
-pagerLineFile = '/home/pi/pager_lines.txt'
+MEGABYTE = 1 << 20
 
 class bcolors:
     HEADER = '\033[95m'
@@ -25,7 +25,7 @@ class Logger(object):
     def pager_log_all(self, line):
         if self.line_file is None:
             return
-        if os.stat(self.line_file).st_size >  (1 << 20):
+        if os.stat(self.line_file).st_size > MEGABYTE:
             os.remove(self.line_file)
         with open(self.line_file, 'a') as f:
             f.write(datetime.now().isoformat())

@@ -17,6 +17,12 @@ from status_api import StatusLog
 from actions import perform
 
 
+DEFAULT_PORT = '/dev/serial0'
+DEFAULT_BAUD = 9600
+DEFAULT_TIMEOUT = 5. * 60
+ROLLOFF_SEC = [5, 15, 30, 60, 120, 240]
+
+
 class SilentPushover(object):
     def send_message(self, *args, **kwargs):
         pass
@@ -27,12 +33,10 @@ class PagerPI(object):
     stop = False
     startup_attempt = 0
     needs_startup = True
-    start_sleep_intervals = [5, 15, 30, 60, 120, 240]
     need_sleep = None
     ip_addresses = "UNSET"
 
-    def __init__(self, pager=None, port='/dev/serial0', baud=9600,
-                 timeout=5.*60, override_config=None, pagerrc=None):
+    def __init__(self, pager=None, override_config=None, pagerrc=None):
         # A list of pager messages that we have received but not
         # logged to the status server.
         self.messages = []
@@ -55,8 +59,11 @@ class PagerPI(object):
         # The serial device that we are reading pager messages from.
         self.pager = pager
         if pager is None:
-            self.pager = serial.Serial(port=port, baudrate=baud,
-                                       timeout=timeout)
+            self.pager = serial.Serial(
+                port=self.config.get('port', DEFAULT_PORT),
+                baudrate=self.config.get('baud', DEFAULT_BAUD),
+                timeout=self.config.get('timeout', DEFAULT_TIMEOUT)
+            )
 
         # An object that sends messages to the status service.
         self.status_log = StatusLog(self)
@@ -94,12 +101,11 @@ class PagerPI(object):
             self.on_exception(e)
 
             # don't try to start up again for this many seconds.
-            sleep_intervals = self.start_sleep_intervals
-            if self.startup_attempt < len(sleep_intervals):
-                self.need_sleep = sleep_intervals[self.startup_attempt]
+            if self.startup_attempt < len(ROLLOFF_SEC):
+                self.need_sleep = ROLLOFF_SEC[self.startup_attempt]
                 self.startup_attempt += 1
             else:
-                self.need_sleep = sleep_intervals[-1]
+                self.need_sleep = ROLLOFF_SEC[-1]
             raise
         else:
             self.startup_attempt = 0
