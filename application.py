@@ -119,8 +119,10 @@ class PagerPI(object):
 
     def main_once(self):
         # Perform any pending requested actions.
-        while self.actions:
-            self.perform(self, self.actions.pop(0))
+        actions = self.actions
+        self.actions = []
+        for action in actions:
+            self.perform(self, action)
 
         if self.needs_startup:
             # Connect to the server to report our version and state.
