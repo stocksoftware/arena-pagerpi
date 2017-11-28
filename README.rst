@@ -14,3 +14,9 @@ remaining configuration files as needed.
 
 Otherwise, the system can automatically update from the ``master``
 branch on github.
+
+Documenation
+------------
+
+Further documentation can be found here:
+https://drive.google.com/drive/folders/1aAOoTtEiYQ79C7OYgwVIpzVCHfKvVaeH
