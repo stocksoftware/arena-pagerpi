@@ -14,6 +14,7 @@ from subprocess import check_output
 from datetime import datetime
 from page_log import Logger, NullLogger
 from status_api import StatusLog
+from arena_api import ArenaAPI
 from actions import perform
 
 
@@ -35,6 +36,7 @@ class PagerPI(object):
     needs_startup = True
     need_sleep = None
     ip_addresses = "UNSET"
+    ROLLOFF_SEC = ROLLOFF_SEC
 
     def __init__(self, pager=None, override_config=None, pagerrc=None):
         # A list of pager messages that we have received but not
@@ -68,6 +70,9 @@ class PagerPI(object):
         # An object that sends messages to the status service.
         self.status_log = StatusLog(self)
 
+        # An object that sends PDD messages to Arena.
+        self.arena_api = ArenaAPI(self)
+
         # Application metrics.
         self.status = {'alert_messages': 0,
                        'other_messages': 0,
@@ -86,7 +91,8 @@ class PagerPI(object):
     def log(self):
         if self.config.get('silent'):
             return NullLogger()
-        return Logger(self.verbose, self.config.get('lineFile'))
+        log_factory = self.config.get('log_factory', Logger)
+        return log_factory(self.verbose, self.config.get('lineFile'))
 
     def startup(self):
         """Perform startup tasks
@@ -101,11 +107,11 @@ class PagerPI(object):
             self.on_exception(e)
 
             # don't try to start up again for this many seconds.
-            if self.startup_attempt < len(ROLLOFF_SEC):
-                self.need_sleep = ROLLOFF_SEC[self.startup_attempt]
+            if self.startup_attempt < len(self.ROLLOFF_SEC):
+                self.need_sleep = self.ROLLOFF_SEC[self.startup_attempt]
                 self.startup_attempt += 1
             else:
-                self.need_sleep = ROLLOFF_SEC[-1]
+                self.need_sleep = self.ROLLOFF_SEC[-1]
             raise
         else:
             self.startup_attempt = 0
@@ -147,19 +153,25 @@ class PagerPI(object):
 
         # notify the status server of our activity.
         try:
-            self.status_log.message(self.messages, self.errors)
+            resp = self.status_log.message(self.messages, self.errors)
         except Exception as exception:
             self.on_exception(exception)
+            self.needs_startup = True
         else:
-            self.messages = []
-            self.errors = {}
+            print(resp)
+            if resp.get('errors', None):
+                self.log.report_server_error(resp)
+                self.needs_startup = True
+            else:
+                self.messages = []
+                self.errors = {}
 
     def main(self):
         while not self.stop:
             try:
                 self.main_once()
             except Exception as exception:
-                self.on_exception(exception)
+                self.on_exception_main(exception)
             if self.need_sleep is not None:
                 time.sleep(self.need_sleep)
                 self.need_sleep = None
@@ -212,14 +224,8 @@ class PagerPI(object):
                               'type' : 'alert',
                               'message' : alert['message']})
         self.send_public_message(alert)
-        headers = {"x-version": self.config['xver'],
-                   "authorization": self.config['auth'],
-                   "content-type": "application/x-www-form-urlencoded"}
         if alert['lat'] is not None:
-            response = requests.post(self.config['pddUrl'],
-                                     headers=headers,
-                                     data=urllib.urlencode(alert))
-            response.raise_for_status()
+            self.arena_api.pdd(alert)
         self.status['alert_messages'] += 1
 
     def on_unhandled_message(self, message):
@@ -228,7 +234,22 @@ class PagerPI(object):
                               'message' : read_page.clean_message(message)})
         self.status['other_messages'] += 1
 
+    def on_exception_main(self, exception):
+        """Report an exception at the top level.
+
+        Useful hook for tests, which should probably fail immediately
+        if any unexpected exceptions occur.
+
+        """
+        self.on_exception(exception)
+
     def on_exception(self, exception):
+        """Report an exception.
+
+        Print the exception to the console and log it for later
+        sending to the status service.
+
+        """
         exception_text = traceback.format_exception_only(type(exception),
                                                          exception)
         now = datetime.now()

@@ -39,6 +39,16 @@ class Logger(object):
         print(datetime.now())
         sys.exit(text)
 
+    def report_server_error(self, data):
+        print(bcolors.WARNING + "SERVER ERROR:")
+        print(datetime.now().isoformat())
+        for error in data['errors']:
+            print('  ', error)
+        print(bcolors.ENDC)
+        print("ADDITIONAL INFO:")
+        for info in data['info']:
+            print('  ', info)
+
     def report_exception(self, now, e):
         print(bcolors.WARNING + "ERROR....")
         print(now.isoformat())
@@ -52,6 +62,9 @@ class NullLogger(object):
 
     def fail_and_exit(self, text):
         sys.exit(text)
+
+    def report_server_error(self, data):
+        pass
 
     def report_exception(self, now, e):
         pass
