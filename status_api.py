@@ -49,6 +49,6 @@ class StatusLog(object):
             'status_key' : self.status_key,
             'messages' : json.dumps(messages),
             'errors' : json.dumps(errors),
-            'report' : self.app.status,
+            'report' : json.dumps(self.app.status, default=str),
             'hostname' : self.config('hostname', '?'),
         })

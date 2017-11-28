@@ -225,7 +225,7 @@ class PagerPI(object):
                               'message' : alert['message']})
         self.send_public_message(alert)
         if alert['lat'] is not None:
-            self.arena_api.pdd(alert)
+            self.arena_api.record_pdd(alert)
         self.status['alert_messages'] += 1
 
     def on_unhandled_message(self, message):

@@ -28,16 +28,18 @@ class StdoutPushover(object):
 
 
 def main():
-    default_config = {}
+    override_config = {}
     if "--local" in sys.argv:
-        default_config['pager_log_host'] = 'http://localhost:8080/'
-    pagerpi = PagerPI(pager=StdinPager(), default_config=default_config)
+        override_config['pager_log_host'] = 'http://localhost:8080/'
+    pagerpi = PagerPI(pager=StdinPager(), override_config=override_config)
     if "--real-pushover" not in sys.argv:
         pagerpi.pushover = StdoutPushover()
         pagerpi.public_pushover = StdoutPushover()
     pagerpi.debug = True
     pagerpi.verbose = True
     pagerpi.send_addresses = lambda: None
+    print "Example alert message:"
+    print "x x @@ALERT F0 x G&SC1 message SVC 1729 B11 (31415) LAT/LON:-37.777, 144.444 v w x y z [resource]"
     try:
         pagerpi.main()
     except Shutdown:
