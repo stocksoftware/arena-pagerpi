@@ -21,24 +21,19 @@ class ArenaAPI(object):
                 'username': auth['username'],
                 'password': auth['password']
             })
-            print result.text
             result.raise_for_status()
             self._authorisation = result.json()['access_token']
         return self._authorisation
 
     def record_pdd(self, alert):
-        may_retry_auth = False
-        while True: # Retry if it fails to auth
-            authorisation = self.authorisation()
-            try:
-                self._pdd(alert, authorisation)
-                return
-            except requests.HTTPError as error:
-                if error.response.status_code == 403 and may_retry_auth:
-                    self._authorisation = None
-                    may_retry_auth = False
-                else:
-                    raise
+        try:
+            self._pdd(alert, self.authorisation())
+            return
+        except requests.HTTPError as error:
+            self._authorisation = None
+            if error.response.status_code != 403:
+                raise
+            self._pdd(alert, self.authorisation())
 
     def _pdd(self, alert, authorisation):
         pdd_config = self.app.config['pdd']
