@@ -190,12 +190,14 @@ class PagerPI(object):
     def handle_serial_data(self, pager_message):
         alert = read_page.read_alert_message(self, pager_message)
         if alert:
-            if self.debug and alert['lat'] is None:
+            # if self.debug and alert['lat'] is None:
+            if alert['lat'] is None:
                 self.make_random_geo(alert)
             if self.verbose:
                 read_page.show_alert_message(alert)
             else:
-                print('alert message: %r' % (alert['message'],))
+                print('alert message: %r' % (pager_message,))
+                print('alert message[message]: %r' % (alert['message'],))
             self.on_alert_message(alert)
         else:
             self.on_unhandled_message(pager_message)
