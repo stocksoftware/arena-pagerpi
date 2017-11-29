@@ -122,7 +122,10 @@ class PagerPI(object):
         actions = self.actions
         self.actions = []
         for action in actions:
-            self.perform(self, action)
+            try:
+                self.perform(self, action)
+            except Exception as e:
+                self.on_exception(e)
 
         if self.needs_startup:
             # Connect to the server to report our version and state.
@@ -208,12 +211,12 @@ class PagerPI(object):
 
         Generate a random location and whether it is an aircraft message.
         """
-        if app.verbose:
+        if self.verbose:
             print("NO Geo Coords - going random!")
         alert['latitude'] = -37.616+random.uniform(-1, 1)
         alert['longitude'] = 144.420+random.uniform(-1, 1)
         if random.randint(0,9) > 5:
-            if app.verbose:
+            if self.verbose:
                 print("Random aircraft message generated!")
             alert['aircraftMsg'] = 1
 
