@@ -210,8 +210,8 @@ class PagerPI(object):
         """
         if self.verbose:
             print("NO Geo Coords - going random!")
-        alert['latitude'] = -37.616+random.uniform(-1, 1)
-        alert['longitude'] = 144.420+random.uniform(-1, 1)
+        alert['lat'] = -37.616+random.uniform(-1, 1)
+        alert['lon'] = 144.420+random.uniform(-1, 1)
         if random.randint(0,9) > 5:
             if app.verbose:
                 self("Random aircraft message generated!")
