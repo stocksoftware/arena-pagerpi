@@ -208,13 +208,13 @@ class PagerPI(object):
 
         Generate a random location and whether it is an aircraft message.
         """
-        if app.verbose:
+        if self.verbose:
             print("NO Geo Coords - going random!")
         alert['latitude'] = -37.616+random.uniform(-1, 1)
         alert['longitude'] = 144.420+random.uniform(-1, 1)
         if random.randint(0,9) > 5:
             if app.verbose:
-                print("Random aircraft message generated!")
+                self("Random aircraft message generated!")
             alert['aircraftMsg'] = 1
 
     def send_public_message(self, alert):
