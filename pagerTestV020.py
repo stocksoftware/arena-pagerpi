@@ -56,7 +56,7 @@ def sendToURL(params):
 # alternative http://docs.python-requests.org/en/master/user/quickstart/#passing-parameters-in-urls
 #
   headers = {"content-type": "application/x-www-form-urlencoded", "x-version": CONFIG['xver'], "authorization": CONFIG['auth']}
-  conn = httplib.HTTPConnection(CONFIG['serverurl'])
+  conn = httplib.HTTPConnection(CONFIG['pddUrl'])
   conn.request("POST", CONFIG['path'], params, headers)
   response = conn.getresponse()
   conn.close()

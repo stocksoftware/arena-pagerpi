@@ -36,11 +36,12 @@ class ArenaAPI(object):
             self._pdd(alert, self.authorisation())
 
     def _pdd(self, alert, authorisation):
-        pdd_config = self.app.config['pdd']
+        # pdd_config = self.app.config['pdd']
+        pdd_config = self.app.config
         headers = {"x-version": pdd_config['xver'],
                    "authorization": authorisation,
                    "content-type": "application/x-www-form-urlencoded"}
-        response = requests.post(pdd_config['url'],
+        response = requests.post(pdd_config['pddUrl'],
                                  headers=headers,
                                  data=urllib.urlencode(alert))
         response.raise_for_status()

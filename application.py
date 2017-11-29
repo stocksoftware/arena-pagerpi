@@ -195,12 +195,14 @@ class PagerPI(object):
     def handle_serial_data(self, pager_message):
         alert = read_page.read_alert_message(self, pager_message)
         if alert:
-            if self.debug and alert['lat'] is None:
+            # if self.debug and alert['lat'] is None:
+            if alert['lat'] is None:
                 self.make_random_geo(alert)
             if self.verbose:
                 read_page.show_alert_message(alert)
             else:
-                print('alert message: %r' % (alert['message'],))
+                print('alert message: %r' % (pager_message,))
+                print('alert message[message]: %r' % (alert['message'],))
             self.on_alert_message(alert)
         else:
             self.on_unhandled_message(pager_message)
@@ -213,8 +215,8 @@ class PagerPI(object):
         """
         if self.verbose:
             print("NO Geo Coords - going random!")
-        alert['latitude'] = -37.616+random.uniform(-1, 1)
-        alert['longitude'] = 144.420+random.uniform(-1, 1)
+        alert['lat'] = -37.616+random.uniform(-1, 1)
+        alert['lon'] = 144.420+random.uniform(-1, 1)
         if random.randint(0,9) > 5:
             if self.verbose:
                 print("Random aircraft message generated!")
