@@ -1,0 +1,9 @@
+{
+    "api_token" : "my pushover api token",
+    "group_token": "my pushover group token",
+    "service_capability" : "a capability token used by the pager to reach this service",
+    "status_capability" : "a capability token required to view the pager status",
+    "exception_max" : 20,
+    "message_max" : 20,
+    "report_max" : 20
+}

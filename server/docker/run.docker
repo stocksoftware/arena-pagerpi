@@ -1,0 +1,11 @@
+FROM pager2-base
+
+ADD wheelhouse /wheelhouse
+VOLUME /pager-data
+
+RUN . /appenv/bin/activate; \
+    pip install --no-index -f wheelhouse pager2
+
+EXPOSE 8081
+
+ENTRYPOINT . /appenv/bin/activate; pager-site

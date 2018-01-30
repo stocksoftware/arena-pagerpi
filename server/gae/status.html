@@ -1,0 +1,31 @@
+<html>
+  <head>
+    <title>PagerPI</title>
+    <link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
+  </head>
+  <body>
+    <h2>Active PagerPiZero Instances</h2>
+    <div>
+{% for pager in pagers %}
+      <div style="border-width:1px;border-style:solid;background-color:#bbbbbb;margin:3px;">
+        <h3>{{ pager.hostname }}</h3>
+        Details:
+        <ul>
+          <li>public ip: {{ pager.public_ip }}</li>
+          <li>private ip: {{ pager.private_ip }}</li>
+          <li>last report time: <span style="{{ pager | status_style }}">{{ pager.report_time }} ({{ pager | ago }})</span></li>
+          <li>revision: {{ pager.revision }}</li>
+{% if pager.messages %}
+        </ul>
+        Messages:
+        <ul>
+{% for message in pager.messages %}
+        <li><i>{{ message.ts }}</i> {{ message.message }}</li>
+{% endfor %}
+{% endif %}
+        </ul>
+      </div>
+{% endfor %}
+    </div>
+  </body>
+</html>
