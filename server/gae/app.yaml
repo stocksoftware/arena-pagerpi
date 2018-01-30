@@ -1,0 +1,14 @@
+runtime: python27
+threadsafe: true
+api_version: 1
+
+handlers:
+- url: /pager/.*
+  script: pager.main.APP
+  secure: always
+
+libraries:
+- name: ssl
+  version: 2.7.11
+- name: jinja2
+  version: latest
